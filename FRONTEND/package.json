@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Diora18/KarWaan#readme",
   "dependencies": {
+    "@rolldown/binding-darwin-arm64": "^1.1.5",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-router-dom": "^7.18.1"

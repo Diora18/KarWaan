@@ -7,5 +7,10 @@
     "build": "npm --prefix FRONTEND run build",
     "preview": "npm --prefix FRONTEND run preview"
   },
-  "workspaces": ["FRONTEND"]
+  "workspaces": [
+    "FRONTEND"
+  ],
+  "devDependencies": {
+    "esbuild": "^0.28.1"
+  }
 }

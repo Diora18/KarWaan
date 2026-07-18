@@ -8,6 +8,10 @@ import OfferRidePage from './pages/OfferRidePage.jsx'
 import MyTripsPage from './pages/MyTripsPage.jsx'
 import RideHistoryPage from './pages/RideHistoryPage.jsx'
 import AdminPage from './pages/AdminPage.jsx'
+import VehiclesPage from './pages/VehiclesPage.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import AdminRoute from './components/AdminRoute.jsx'
+import WalletPage from './pages/WalletPage.jsx'
 
 function App() {
   return (
@@ -15,12 +19,14 @@ function App() {
       <Route path="/" element={<SplashScreen />} />
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/signup" element={<SignupScreen />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/find-ride" element={<FindRidePage />} />
-      <Route path="/offer-ride" element={<OfferRidePage />} />
-      <Route path="/my-trips" element={<MyTripsPage />} />
-      <Route path="/history" element={<RideHistoryPage />} />
-      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/find-ride" element={<ProtectedRoute><FindRidePage /></ProtectedRoute>} />
+      <Route path="/offer-ride" element={<ProtectedRoute><OfferRidePage /></ProtectedRoute>} />
+      <Route path="/vehicles" element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
+      <Route path="/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+      <Route path="/my-trips" element={<ProtectedRoute><MyTripsPage /></ProtectedRoute>} />
+      <Route path="/history" element={<ProtectedRoute><RideHistoryPage /></ProtectedRoute>} />
+      <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
