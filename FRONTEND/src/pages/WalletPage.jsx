@@ -48,8 +48,8 @@ export default function WalletPage() {
   }
 
   const getTxColor = (amount) => {
-    if (amount > 0) return '#16a34a'
-    if (amount < 0) return '#dc2626'
+    if (amount > 0) return 'var(--success)'
+    if (amount < 0) return 'var(--danger)'
     return 'inherit'
   }
 
@@ -62,7 +62,7 @@ export default function WalletPage() {
         </div>
 
         {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#991b1b' : '#166534' }}>
+          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
             {message.text}
           </div>
         )}
@@ -70,7 +70,7 @@ export default function WalletPage() {
         <div className="grid grid-2">
           <div className="panel">
             <h3>Current Balance</h3>
-            <div style={{ fontSize: '3rem', fontWeight: 700, margin: '1rem 0' }}>
+            <div style={{ fontSize: '3rem', fontWeight: 700, margin: '1rem 0', color: 'var(--success)' }}>
               ₹ {balance}
             </div>
 

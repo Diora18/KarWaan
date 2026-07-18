@@ -81,12 +81,11 @@ export function registerSocketHandlers(io) {
       });
     });
 
-    socket.on('send_chat_message', async ({ rideId, message }) => {
+    socket.on('send_chat_message', async ({ rideId, text }) => {
       const chat = await ChatMessage.create({
         rideId,
         senderId: socket.user._id,
-        senderName: socket.user.name,
-        message
+        text
       });
 
       io.to(`ride:${rideId}`).emit('chat_message_received', {
@@ -94,7 +93,7 @@ export function registerSocketHandlers(io) {
         rideId,
         senderId: socket.user._id,
         senderName: socket.user.name,
-        message: chat.message,
+        text: chat.text,
         createdAt: chat.createdAt
       });
     });

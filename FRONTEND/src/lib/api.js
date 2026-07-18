@@ -53,6 +53,21 @@ export function getAdminEmployees() {
   return request('/admin/employees')
 }
 
+export function getAdminVehicles() {
+  return request('/admin/vehicles')
+}
+
+export function getAdminSettings() {
+  return request('/admin/settings')
+}
+
+export function updateAdminSettings(payload) {
+  return request('/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  })
+}
+
 export function updateEmployeeAccess(employeeId, status) {
   return request(`/admin/employees/${employeeId}/access`, {
     method: 'PATCH',
@@ -121,4 +136,8 @@ export function payRideFare(rideId) {
     method: 'POST',
     body: JSON.stringify({ rideId, method: 'Wallet' })
   })
+}
+
+export function getChatHistory(rideId) {
+  return request(`/chats/${rideId}`)
 }

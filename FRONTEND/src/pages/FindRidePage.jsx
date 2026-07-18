@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { bookRide, searchRides } from '../lib/api.js'
+import MapView from '../components/MapView.jsx'
 
 function formatTime(dateString) {
   return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -19,6 +20,7 @@ export default function FindRidePage() {
   const [hasSearched, setHasSearched] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [bookingId, setBookingId] = useState(null)
+  const [selectedRide, setSelectedRide] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -30,6 +32,7 @@ export default function FindRidePage() {
     setSearching(true)
     setMessage({ type: '', text: '' })
     setHasSearched(true)
+    setSelectedRide(null)
     
     try {
       const results = await searchRides({
@@ -45,7 +48,6 @@ export default function FindRidePage() {
     }
   }, [formData.date, formData.seats])
 
-  // Auto-search on page load or when date/seats change
   useEffect(() => {
     handleSearch()
   }, [formData.date, formData.seats])
@@ -77,67 +79,111 @@ export default function FindRidePage() {
         </div>
 
         {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#991b1b' : '#166534' }}>
+          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
             {message.text}
           </div>
         )}
 
         <div className="grid grid-2">
-          <form onSubmit={handleSearch} className="panel">
-            <h3>Search ride</h3>
-            <p className="muted" style={{ marginBottom: '1rem' }}>See all available rides in your organization.</p>
-            
-            <label>Date</label>
-            <input 
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-            
-            <label>Seats needed</label>
-            <select name="seats" value={formData.seats} onChange={handleChange} required>
-              <option value="1">1 seat</option>
-              <option value="2">2 seats</option>
-              <option value="3">3 seats</option>
-              <option value="4">4 seats</option>
-            </select>
-            
-            <button type="submit" className="primary-btn mt-3" disabled={searching}>
-              {searching ? 'Searching...' : 'Search rides'}
-            </button>
-          </form>
+          <div>
+            <form onSubmit={handleSearch} className="panel" style={{ marginBottom: '1rem' }}>
+              <h3>Search ride</h3>
+              <div className="grid grid-2" style={{ marginTop: '1rem' }}>
+                <div>
+                  <label>Date</label>
+                  <input 
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Seats needed</label>
+                  <select name="seats" value={formData.seats} onChange={handleChange} required>
+                    <option value="1">1 seat</option>
+                    <option value="2">2 seats</option>
+                    <option value="3">3 seats</option>
+                    <option value="4">4 seats</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="primary-btn" style={{ width: '100%' }} disabled={searching}>
+                {searching ? 'Searching...' : 'Search rides'}
+              </button>
+            </form>
 
-          <div className="panel">
-            <h3>Available rides</h3>
-            
-            {!hasSearched ? (
-              <p className="muted">Select a date to find open seats.</p>
-            ) : searching ? (
-              <p className="muted">Looking for drivers...</p>
-            ) : rides.length === 0 ? (
-              <p className="muted">No rides found matching your route and time.</p>
-            ) : (
-              <div className="grid" style={{ gap: 12 }}>
-                {rides.map(ride => (
-                  <div key={ride._id} className="card">
-                    <div className="space-between">
-                      <strong>{ride.driverId?.name} • {ride.vehicleId?.model}</strong>
-                      <span className="pill">{ride.availableSeats} seats left</span>
-                    </div>
-                    <p className="muted" style={{ margin: '0.5rem 0' }}>
-                      {formatTime(ride.departureTime)} • {ride.pickupLocation.address.split(',')[0]} → {ride.destinationLocation.address.split(',')[0]} • ₹{ride.farePerSeat} / seat
-                    </p>
-                    <button 
-                      className="secondary-btn"
-                      onClick={() => handleBook(ride)}
-                      disabled={bookingId === ride._id}
+            <div className="panel">
+              <h3>Available rides</h3>
+              {!hasSearched ? (
+                <p className="muted">Select a date to find open seats.</p>
+              ) : searching ? (
+                <p className="muted">Looking for drivers...</p>
+              ) : rides.length === 0 ? (
+                <p className="muted">No rides found for this date.</p>
+              ) : (
+                <div className="grid" style={{ gap: 10, marginTop: '0.5rem' }}>
+                  {rides.map(ride => (
+                    <div
+                      key={ride._id}
+                      className="card"
+                      style={{
+                        cursor: 'pointer',
+                        borderColor: selectedRide?._id === ride._id ? 'var(--accent)' : undefined,
+                        boxShadow: selectedRide?._id === ride._id ? '0 0 0 2px var(--accent-glow)' : undefined
+                      }}
+                      onClick={() => setSelectedRide(ride)}
                     >
-                      {bookingId === ride._id ? 'Booking...' : 'Book ride'}
-                    </button>
-                  </div>
-                ))}
+                      <div className="space-between">
+                        <strong>{ride.driverId?.name}</strong>
+                        <span className="pill">{ride.availableSeats} seats</span>
+                      </div>
+                      <p className="muted" style={{ margin: '0.4rem 0', fontSize: '0.85rem' }}>
+                        🕐 {formatTime(ride.departureTime)} &nbsp;•&nbsp; 🚙 {ride.vehicleId?.model}
+                      </p>
+                      <p className="muted" style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem' }}>
+                        📍 {ride.pickupLocation?.address?.split(',')[0]} → {ride.destinationLocation?.address?.split(',')[0]}
+                      </p>
+                      <div className="space-between">
+                        <strong style={{ color: 'var(--accent)' }}>₹{ride.farePerSeat} / seat</strong>
+                        <button 
+                          className="primary-btn"
+                          style={{ padding: '0.4rem 1rem', fontSize: '0.82rem' }}
+                          onClick={(e) => { e.stopPropagation(); handleBook(ride) }}
+                          disabled={bookingId === ride._id}
+                        >
+                          {bookingId === ride._id ? 'Booking...' : 'Book'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: 420 }}>
+            <h3>Route Preview</h3>
+            {selectedRide ? (
+              <>
+                <div style={{ marginBottom: '0.8rem' }}>
+                  <p className="muted" style={{ fontSize: '0.85rem' }}>
+                    📍 {selectedRide.pickupLocation?.address} → {selectedRide.destinationLocation?.address}
+                  </p>
+                </div>
+                <MapView
+                  pickup={selectedRide.pickupLocation?.coordinates}
+                  destination={selectedRide.destinationLocation?.coordinates}
+                  height="100%"
+                />
+              </>
+            ) : (
+              <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🗺️</div>
+                  <p>Click a ride to preview its route on the map.</p>
+                </div>
               </div>
             )}
           </div>

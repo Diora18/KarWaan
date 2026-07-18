@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getMyVehicles, createMyVehicle } from '../lib/api.js'
-import { useNavigate } from 'react-router-dom'
 
 export default function VehiclesPage() {
-  const navigate = useNavigate()
   const [vehicles, setVehicles] = useState([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -61,7 +59,7 @@ export default function VehiclesPage() {
       <div className="hero-card">
         <div className="topbar">
           <div className="brand"><span>🚗</span><span>My Vehicles</span></div>
-          <button className="secondary-btn" onClick={() => navigate('/dashboard')}>Back</button>
+          <span className="badge">{vehicles.length} registered</span>
         </div>
 
         {message.text && (
@@ -85,7 +83,9 @@ export default function VehiclesPage() {
                       <strong>{v.model}</strong>
                       <span className="pill">{v.status}</span>
                     </div>
-                    <p className="muted" style={{ margin: '0.5rem 0 0 0' }}>{v.registrationNumber} • {v.seatingCapacity} Seats</p>
+                    <p className="muted" style={{ margin: '0.5rem 0 0 0' }}>
+                      {v.registrationNumber} • {v.seatingCapacity} Seats • ⛽ {v.fuelEfficiency ? `${v.fuelEfficiency} km/l` : 'N/A'}
+                    </p>
                   </div>
                 ))}
               </div>

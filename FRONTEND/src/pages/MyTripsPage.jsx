@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { getMyTrips, updateTripStatus, payRideFare } from '../lib/api.js'
 import { getStoredSession } from '../lib/auth.js'
 
@@ -67,7 +68,7 @@ export default function MyTripsPage() {
         </div>
 
         {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#991b1b' : '#166534' }}>
+          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
             {message.text}
           </div>
         )}
@@ -97,7 +98,7 @@ export default function MyTripsPage() {
                   <p className="muted" style={{ margin: '0 0 1rem 0', fontSize: '0.85rem' }}>
                     Vehicle: {ride.vehicleId?.model} ({ride.vehicleId?.registrationNumber})
                     <br />
-                    Passengers: {ride.passengers?.length || 0}
+                    Seats Booked: {ride.passengers?.reduce((sum, p) => sum + (p.seatsBooked || 1), 0) || 0}
                   </p>
 
                   <div className="row">
@@ -113,14 +114,18 @@ export default function MyTripsPage() {
                           </button>
                         )}
                         {ride.status === 'Active' && (
-                          <button 
-                            className="primary-btn"
-                            style={{ background: '#16a34a' }}
-                            onClick={() => handleStatusChange(ride._id, 'Completed')}
-                            disabled={updatingId === ride._id}
-                          >
-                            {updatingId === ride._id ? 'Updating...' : 'Complete Trip'}
-                          </button>
+                          <>
+                            <button 
+                              className="primary-btn"
+                              style={{ background: 'linear-gradient(135deg, #059669, #34d399)', marginRight: '0.5rem' }}
+                              onClick={() => handleStatusChange(ride._id, 'Completed')}
+                              disabled={updatingId === ride._id}
+                            >
+                              {updatingId === ride._id ? 'Updating...' : 'Complete Trip'}
+                            </button>
+                            <Link to={`/chat/${ride._id}`} className="primary-btn" style={{ textDecoration: 'none' }}>💬 Chat</Link>
+                            <Link to={`/track/${ride._id}`} className="primary-btn" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, #6366f1, #a78bfa)' }}>📍 Track Live</Link>
+                          </>
                         )}
                         {['Completed', 'Cancelled'].includes(ride.status) && (
                           <button className="secondary-btn" disabled>Finished</button>
@@ -129,7 +134,12 @@ export default function MyTripsPage() {
                     ) : (
                       <>
                         {ride.status === 'Scheduled' && <button className="secondary-btn" disabled>Waiting for driver...</button>}
-                        {ride.status === 'Active' && <button className="primary-btn">Join Live Chat</button>}
+                        {ride.status === 'Active' && (
+                          <>
+                            <Link to={`/chat/${ride._id}`} className="primary-btn" style={{ textDecoration: 'none' }}>💬 Chat</Link>
+                            <Link to={`/track/${ride._id}`} className="primary-btn" style={{ textDecoration: 'none', background: 'linear-gradient(135deg, #6366f1, #a78bfa)' }}>📍 Track Live</Link>
+                          </>
+                        )}
                         {['Completed', 'Cancelled'].includes(ride.status) && (
                           <button className="secondary-btn" disabled>Finished</button>
                         )}
@@ -140,7 +150,7 @@ export default function MyTripsPage() {
                             return (
                               <button 
                                 className="primary-btn" 
-                                style={{ background: '#3b82f6', marginLeft: '0.5rem' }}
+                                style={{ background: 'var(--accent)', marginLeft: '0.5rem' }}
                                 onClick={() => handlePayFare(ride._id)}
                                 disabled={updatingId === ride._id}
                               >
@@ -149,7 +159,7 @@ export default function MyTripsPage() {
                             )
                           }
                           if (passenger && passenger.farePaid > 0) {
-                            return <span className="pill" style={{ marginLeft: '0.5rem', background: '#dcfce7', color: '#166534' }}>Paid ₹{passenger.farePaid}</span>
+                            return <span className="pill" style={{ marginLeft: '0.5rem', background: 'var(--success-bg)', color: 'var(--success)' }}>Paid ₹{passenger.farePaid}</span>
                           }
                           return null
                         })()}

@@ -10,6 +10,7 @@ import { rideRoutes } from './routes/rideRoutes.js';
 import { userRoutes } from './routes/userRoutes.js';
 import { vehicleRoutes } from './routes/vehicleRoutes.js';
 import { walletRoutes } from './routes/walletRoutes.js';
+import { chatRoutes } from './routes/chatRoutes.js';
 import { requireAdmin, requireAuth } from './middleware/auth.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
@@ -57,6 +58,7 @@ app.use('/api/vehicles', requireAuth, vehicleRoutes);
 app.use('/api/rides', requireAuth, rideRoutes);
 app.use('/api/wallet', requireAuth, walletRoutes);
 app.use('/api/payments', requireAuth, paymentRoutes);
+app.use('/api/chats', requireAuth, chatRoutes);
 app.use('/api/reports', requireAuth, reportRoutes);
 app.use('/api/admin', requireAuth, requireAdmin, adminRoutes);
 

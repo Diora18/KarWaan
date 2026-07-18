@@ -1,20 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getMyVehicles, publishRide } from '../lib/api.js'
-
-// Simple mock geocoder for prototyping
-const MOCK_GEOCODER = {
-  'office': { address: 'Odoo Office, Gandhinagar', coordinates: [72.5276, 23.0351] },
-  'ahmedabad': { address: 'SG Highway, Ahmedabad', coordinates: [72.5312, 23.0338] },
-  'default': { address: 'Sector 1, Gandhinagar', coordinates: [72.6369, 23.2156] }
-}
-
-function geocode(text) {
-  const lower = text.toLowerCase()
-  if (lower.includes('office')) return MOCK_GEOCODER['office']
-  if (lower.includes('ahmedabad')) return MOCK_GEOCODER['ahmedabad']
-  return MOCK_GEOCODER['default']
-}
+import AddressAutocomplete from '../components/AddressAutocomplete.jsx'
+import MapView from '../components/MapView.jsx'
 
 export default function OfferRidePage() {
   const navigate = useNavigate()
@@ -23,11 +11,12 @@ export default function OfferRidePage() {
   const [publishing, setPublishing] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   
+  const [pickupLocation, setPickupLocation] = useState(null)
+  const [destinationLocation, setDestinationLocation] = useState(null)
+
   const [formData, setFormData] = useState({
-    pickupText: '',
-    destinationText: '',
     departureDate: new Date().toISOString().split('T')[0],
-    departureTime: '', // time string like '09:00'
+    departureTime: '',
     availableSeats: 3,
     farePerSeat: 120,
     vehicleId: ''
@@ -38,7 +27,6 @@ export default function OfferRidePage() {
     getMyVehicles()
       .then(data => {
         if (!alive) return
-        // Filter out inactive vehicles
         const activeVehicles = data.filter(v => v.status === 'Active')
         setVehicles(activeVehicles)
         if (activeVehicles.length > 0) {
@@ -66,19 +54,18 @@ export default function OfferRidePage() {
     setMessage({ type: '', text: '' })
 
     try {
-      if (!formData.vehicleId) {
-        throw new Error('Please select a vehicle')
-      }
+      if (!formData.vehicleId) throw new Error('Please select a vehicle')
+      if (!pickupLocation) throw new Error('Please select a pickup location from the suggestions')
+      if (!destinationLocation) throw new Error('Please select a destination from the suggestions')
 
-      // Combine date and time inputs
       const departureDate = new Date(formData.departureDate)
       const [hours, minutes] = formData.departureTime.split(':')
       departureDate.setHours(Number(hours), Number(minutes), 0, 0)
 
       const payload = {
         vehicleId: formData.vehicleId,
-        pickupLocation: geocode(formData.pickupText),
-        destinationLocation: geocode(formData.destinationText),
+        pickupLocation: pickupLocation,
+        destinationLocation: destinationLocation,
         departureTime: departureDate.toISOString(),
         availableSeats: Number(formData.availableSeats),
         farePerSeat: Number(formData.farePerSeat)
@@ -86,9 +73,7 @@ export default function OfferRidePage() {
 
       await publishRide(payload)
       setMessage({ type: 'success', text: 'Ride published successfully! Redirecting...' })
-      
       setTimeout(() => navigate('/dashboard'), 1500)
-
     } catch (err) {
       setMessage({ type: 'error', text: err.message })
       setPublishing(false)
@@ -104,30 +89,27 @@ export default function OfferRidePage() {
         </div>
 
         {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#991b1b' : '#166534' }}>
+          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
             {message.text}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="grid grid-2">
           <div className="panel">
-            <h3>Ride details</h3>
-            <label>Pickup location</label>
-            <input 
-              name="pickupText"
-              placeholder="e.g., Sector 1, Gandhinagar" 
-              value={formData.pickupText}
-              onChange={handleChange}
-              required
+            <h3>Route & Schedule</h3>
+            
+            <AddressAutocomplete
+              label="Pickup location"
+              placeholder="Search pickup address..."
+              value={pickupLocation}
+              onChange={setPickupLocation}
             />
             
-            <label>Destination</label>
-            <input 
-              name="destinationText"
-              placeholder="e.g., Odoo Office" 
-              value={formData.destinationText}
-              onChange={handleChange}
-              required
+            <AddressAutocomplete
+              label="Destination"
+              placeholder="Search destination..."
+              value={destinationLocation}
+              onChange={setDestinationLocation}
             />
             
             <div className="grid grid-2">
@@ -153,36 +135,35 @@ export default function OfferRidePage() {
               </div>
             </div>
             
-            <label>Available seats</label>
-            <input 
-              type="number" 
-              name="availableSeats"
-              placeholder="3" 
-              min="1"
-              value={formData.availableSeats}
-              onChange={handleChange}
-              required
-            />
-            
-            <label>Fare per seat (₹)</label>
-            <input 
-              type="number" 
-              name="farePerSeat"
-              placeholder="120" 
-              min="0"
-              value={formData.farePerSeat}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="grid grid-2">
+              <div>
+                <label>Available seats</label>
+                <input 
+                  type="number" 
+                  name="availableSeats"
+                  min="1"
+                  value={formData.availableSeats}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label>Fare per seat (₹)</label>
+                <input 
+                  type="number" 
+                  name="farePerSeat"
+                  min="0"
+                  value={formData.farePerSeat}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
 
-          <div className="panel">
-            <h3>Vehicle details</h3>
-            
             {loadingVehicles ? (
               <p className="muted">Loading vehicles...</p>
             ) : vehicles.length === 0 ? (
-              <p className="muted" style={{ color: '#991b1b' }}>No active vehicles found. Please add a vehicle first.</p>
+              <p className="muted" style={{ color: 'var(--danger)' }}>No active vehicles. Please add one first.</p>
             ) : (
               <>
                 <label>Select Vehicle</label>
@@ -198,12 +179,6 @@ export default function OfferRidePage() {
                     </option>
                   ))}
                 </select>
-                
-                <div style={{ marginTop: '2rem' }}>
-                  <p className="muted" style={{ fontSize: '0.85rem' }}>
-                    Note: For testing purposes, locations containing "Office" or "Ahmedabad" will map to hardcoded geocoordinates.
-                  </p>
-                </div>
               </>
             )}
 
@@ -215,6 +190,24 @@ export default function OfferRidePage() {
             >
               {publishing ? 'Publishing...' : 'Publish ride'}
             </button>
+          </div>
+
+          <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: 420 }}>
+            <h3>Route Preview</h3>
+            {(!pickupLocation && !destinationLocation) ? (
+              <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🗺️</div>
+                  <p>Pick a start and end point to preview the route on the map.</p>
+                </div>
+              </div>
+            ) : (
+              <MapView
+                pickup={pickupLocation?.coordinates}
+                destination={destinationLocation?.coordinates}
+                height="100%"
+              />
+            )}
           </div>
         </form>
       </div>
