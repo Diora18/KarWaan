@@ -68,8 +68,13 @@ export default function MyTripsPage() {
         </div>
 
         {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
-            {message.text}
+          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{message.text}</span>
+            {message.type === 'error' && message.text.includes('Insufficient balance') && (
+              <Link to="/wallet" className="primary-btn" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}>
+                Add Funds
+              </Link>
+            )}
           </div>
         )}
 

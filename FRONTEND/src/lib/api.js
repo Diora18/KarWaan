@@ -141,3 +141,17 @@ export function payRideFare(rideId) {
 export function getChatHistory(rideId) {
   return request(`/chats/${rideId}`)
 }
+
+export function createRazorpayOrder(amount) {
+  return request('/payments/create-order', {
+    method: 'POST',
+    body: JSON.stringify({ amount })
+  })
+}
+
+export function verifyRazorpayPayment(payload) {
+  return request('/payments/verify', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  })
+}

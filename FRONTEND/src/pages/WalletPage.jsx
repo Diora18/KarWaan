@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getProfile, getWalletTransactions, rechargeWallet } from '../lib/api.js'
+import { getProfile, getWalletTransactions, createRazorpayOrder, verifyRazorpayPayment } from '../lib/api.js'
 
 export default function WalletPage() {
   const [balance, setBalance] = useState(0)
@@ -36,12 +36,47 @@ export default function WalletPage() {
     setMessage({ type: '', text: '' })
     
     try {
-      await rechargeWallet({ amount: Number(rechargeAmount) })
-      setMessage({ type: 'success', text: `Successfully added ₹${rechargeAmount} to your wallet!` })
-      setRechargeAmount('')
-      await loadData()
+      // 1. Create order on backend
+      const order = await createRazorpayOrder(Number(rechargeAmount))
+
+      // 2. Open Razorpay checkout
+      const options = {
+        key: order.key, 
+        amount: order.amount,
+        currency: order.currency,
+        name: 'KarWaan',
+        description: 'Wallet Top-up',
+        order_id: order.orderId,
+        handler: async function (response) {
+          try {
+            // 3. Verify payment on backend
+            await verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: Number(rechargeAmount)
+            })
+            
+            setMessage({ type: 'success', text: `Successfully added ₹${rechargeAmount} to your wallet via Razorpay!` })
+            setRechargeAmount('')
+            await loadData()
+          } catch (err) {
+            setMessage({ type: 'error', text: 'Payment verification failed: ' + err.message })
+          }
+        },
+        theme: {
+          color: '#38bdf8' // matches our blue accent
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.on('payment.failed', function (response) {
+        setMessage({ type: 'error', text: 'Payment failed: ' + response.error.description })
+      })
+      rzp.open()
+      
     } catch (err) {
-      setMessage({ type: 'error', text: 'Recharge failed: ' + err.message })
+      setMessage({ type: 'error', text: 'Checkout failed: ' + err.message })
     } finally {
       setRecharging(false)
     }
