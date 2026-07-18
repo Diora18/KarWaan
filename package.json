@@ -1,0 +1,11 @@
+{
+  "name": "karwaan-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix FRONTEND run dev",
+    "build": "npm --prefix FRONTEND run build",
+    "preview": "npm --prefix FRONTEND run preview"
+  },
+  "workspaces": ["FRONTEND"]
+}
