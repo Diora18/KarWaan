@@ -11,70 +11,45 @@ export default function SplashScreen() {
 
     getOrganizations()
       .then((data) => {
-        if (alive) {
-          setOrganizations(data)
-        }
+        if (alive) setOrganizations(data)
       })
       .catch(() => {
-        if (alive) {
-          setOrganizations([])
-        }
+        if (alive) setOrganizations([])
       })
       .finally(() => {
-        if (alive) {
-          setLoading(false)
-        }
+        if (alive) setLoading(false)
       })
 
-    return () => {
-      alive = false
-    }
+    return () => { alive = false }
   }, [])
 
   return (
-    <div className="app-shell center" style={{ minHeight: '100vh' }}>
-      <div className="hero-card center" style={{ maxWidth: 560, padding: '48px 40px' }}>
-        <div style={{ fontSize: '3.5rem', marginBottom: '0.5rem' }}>🚗</div>
-        <h1 style={{
-          fontFamily: "'Outfit', sans-serif",
-          fontSize: '2.8rem',
-          fontWeight: 900,
-          background: 'linear-gradient(135deg, #0ea5e9, #6366f1, #a78bfa)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          letterSpacing: '-0.03em',
-          marginBottom: '0.3rem'
-        }}>
-          KarWaan
-        </h1>
-        <p style={{
-          fontSize: '1.1rem',
-          color: 'var(--text-secondary)',
-          marginBottom: '2rem',
-          maxWidth: 380
-        }}>
-          Ride Together, Save Together. One secure platform for finding, sharing, and tracking employee rides.
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
+      <div style={{ maxWidth: 600, width: '100%', textAlign: 'center', padding: '4rem 2rem' }}>
+        <div style={{ fontSize: '4rem', marginBottom: '1rem', display: 'inline-block', background: 'white', padding: '1.5rem', borderRadius: '50%', boxShadow: 'var(--shadow-md)' }}>🚗</div>
+        <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.05em' }}>KarWaan</h1>
+        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6', maxWidth: 450, margin: '0 auto 2rem' }}>
+          Ride together, save together. One secure platform for finding, sharing, and tracking employee rides.
         </p>
 
-        <p className="muted" style={{ marginBottom: '1.2rem' }}>
+        <p className="muted" style={{ marginBottom: '1.5rem', fontSize: '0.9rem' }}>
           {loading ? 'Connecting to backend...' : `${organizations.length} organizations connected`}
         </p>
 
         {organizations.length > 0 && (
-          <div className="row" style={{ justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginBottom: '3rem' }}>
             {organizations.slice(0, 4).map((org) => (
-              <span key={org._id} className="badge">{org.name}</span>
+              <span key={org._id} className="pill" style={{ background: 'white', border: '1px solid var(--border)' }}>{org.name}</span>
             ))}
           </div>
         )}
 
-        <div className="row" style={{ justifyContent: 'center', gap: '1rem' }}>
-          <Link to="/login">
-            <button className="primary-btn" style={{ padding: '12px 32px', fontSize: '1rem' }}>Login</button>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center' }}>
+          <Link to="/login" style={{ flex: 1, maxWidth: 200 }}>
+            <button className="primary-btn" style={{ width: '100%', padding: '0.8rem 0' }}>Sign in</button>
           </Link>
-          <Link to="/signup">
-            <button className="secondary-btn" style={{ padding: '12px 32px', fontSize: '1rem' }}>Create account</button>
+          <Link to="/signup" style={{ flex: 1, maxWidth: 200 }}>
+            <button className="secondary-btn" style={{ width: '100%', padding: '0.8rem 0' }}>Create account</button>
           </Link>
         </div>
       </div>

@@ -36,10 +36,8 @@ export default function WalletPage() {
     setMessage({ type: '', text: '' })
     
     try {
-      // 1. Create order on backend
       const order = await createRazorpayOrder(Number(rechargeAmount))
 
-      // 2. Open Razorpay checkout
       const options = {
         key: order.key, 
         amount: order.amount,
@@ -49,7 +47,6 @@ export default function WalletPage() {
         order_id: order.orderId,
         handler: async function (response) {
           try {
-            // 3. Verify payment on backend
             await verifyRazorpayPayment({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -65,7 +62,7 @@ export default function WalletPage() {
           }
         },
         theme: {
-          color: '#38bdf8' // matches our blue accent
+          color: '#f97316'
         }
       }
 
@@ -82,76 +79,72 @@ export default function WalletPage() {
     }
   }
 
-  const getTxColor = (amount) => {
-    if (amount > 0) return 'var(--success)'
-    if (amount < 0) return 'var(--danger)'
-    return 'inherit'
-  }
-
   return (
     <div className="app-shell">
-      <div className="hero-card">
-        <div className="topbar">
-          <div className="brand"><span>💳</span><span>My Wallet</span></div>
-          <span className="badge">Balance: ₹{balance}</span>
+      <header className="page-header">
+        <p className="page-eyebrow">Finance</p>
+        <h1>Wallet</h1>
+        <p className="page-subtitle">Manage your funds, add balance, and view transaction history.</p>
+      </header>
+
+      {message.text && (
+        <div className={`alert alert--${message.type === 'error' ? 'error' : 'success'}`}>
+          {message.text}
+        </div>
+      )}
+
+      <div className="grid grid-2">
+        <div className="card card--gradient">
+          <h3 style={{ margin: 0, fontWeight: 500, opacity: 0.9, color: 'white' }}>Current Balance</h3>
+          <div className="wallet-balance">₹ {balance}</div>
+
+          <form onSubmit={handleRecharge} className="wallet-recharge">
+            <label>Add Funds</label>
+            <div className="wallet-recharge-row">
+              <input 
+                type="number" 
+                placeholder="Amount in ₹" 
+                value={rechargeAmount}
+                onChange={(e) => setRechargeAmount(e.target.value)}
+                min="1"
+                required
+              />
+              <button type="submit" className="primary-btn btn-dark" disabled={recharging}>
+                {recharging ? 'Adding...' : 'Recharge'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
-            {message.text}
-          </div>
-        )}
-
-        <div className="grid grid-2">
-          <div className="panel">
-            <h3>Current Balance</h3>
-            <div style={{ fontSize: '3rem', fontWeight: 700, margin: '1rem 0', color: 'var(--success)' }}>
-              ₹ {balance}
+        <div className="card card--flat">
+          <h3 className="mb-md">Transaction History</h3>
+          {loading ? (
+            <p className="loading-text">Loading history...</p>
+          ) : transactions.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">💳</div>
+              <p>No transactions yet.</p>
             </div>
-
-            <form onSubmit={handleRecharge} style={{ marginTop: '2rem' }}>
-              <label>Add Funds (Mock)</label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input 
-                  type="number" 
-                  placeholder="Amount in ₹" 
-                  value={rechargeAmount}
-                  onChange={(e) => setRechargeAmount(e.target.value)}
-                  min="1"
-                  required
-                  style={{ flex: 1 }}
-                />
-                <button type="submit" className="primary-btn" disabled={recharging}>
-                  {recharging ? 'Adding...' : 'Recharge'}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="panel">
-            <h3>Transaction History</h3>
-            {loading ? (
-              <p className="muted">Loading history...</p>
-            ) : transactions.length === 0 ? (
-              <p className="muted">No transactions yet.</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                {transactions.map(tx => (
-                  <div key={tx._id} className="card space-between" style={{ padding: '0.8rem 1rem' }}>
+          ) : (
+            <div className="tx-list">
+              {transactions.map(tx => (
+                <div key={tx._id} className="tx-item">
+                  <div className="tx-info">
+                    <div className="tx-icon">{tx.amount > 0 ? '↓' : '↑'}</div>
                     <div>
-                      <strong>{tx.type}</strong>
-                      <div className="muted" style={{ fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                        {new Date(tx.createdAt).toLocaleDateString()} • {tx.method}
+                      <span className="tx-type">{tx.type}</span>
+                      <div className="tx-meta">
+                        {new Date(tx.createdAt).toLocaleDateString()} · {tx.method}
                       </div>
                     </div>
-                    <strong style={{ color: getTxColor(tx.amount), fontSize: '1.1rem' }}>
-                      {tx.amount > 0 ? '+' : ''}{tx.amount}
-                    </strong>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <strong className={`tx-amount ${tx.amount > 0 ? 'tx-amount--credit' : ''}`}>
+                    {tx.amount > 0 ? '+' : ''}{tx.amount}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

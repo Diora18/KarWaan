@@ -56,90 +56,98 @@ export default function VehiclesPage() {
 
   return (
     <div className="app-shell">
-      <div className="hero-card">
-        <div className="topbar">
-          <div className="brand"><span>🚗</span><span>My Vehicles</span></div>
-          <span className="badge">{vehicles.length} registered</span>
+      <header className="page-header">
+        <p className="page-eyebrow">Fleet</p>
+        <h1>My Vehicles</h1>
+        <p className="page-subtitle">Manage your cars and their details for offering rides.</p>
+      </header>
+
+      {message.text && (
+        <div className={`alert alert--${message.type === 'error' ? 'error' : 'success'}`}>
+          {message.text}
+        </div>
+      )}
+
+      <div className="grid grid-2">
+        <div className="card card--flat">
+          <h3 className="mb-sm">Registered Vehicles</h3>
+          {loading ? (
+            <p className="loading-text">Loading...</p>
+          ) : vehicles.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">🚙</div>
+              <p>You have no registered vehicles.</p>
+            </div>
+          ) : (
+            <div className="grid gap-sm">
+              {vehicles.map(v => (
+                <div key={v._id} className="vehicle-item">
+                  <div className="vehicle-item-header">
+                    <strong>{v.model}</strong>
+                    <span className={`pill ${v.status === 'Active' ? 'pill--success' : ''}`}>
+                      {v.status}
+                    </span>
+                  </div>
+                  <p className="muted" style={{ margin: 0, fontSize: '0.875rem' }}>
+                    <strong>Reg:</strong> {v.registrationNumber}<br/>
+                    <strong>Seats:</strong> {v.seatingCapacity} · <strong>Efficiency:</strong> {v.fuelEfficiency ? `${v.fuelEfficiency} km/l` : 'N/A'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? '#fee2e2' : '#dcfce7', color: message.type === 'error' ? '#991b1b' : '#166534' }}>
-            {message.text}
-          </div>
-        )}
-
-        <div className="grid grid-2">
-          <div className="panel">
-            <h3>Registered Vehicles</h3>
-            {loading ? (
-              <p className="muted">Loading...</p>
-            ) : vehicles.length === 0 ? (
-              <p className="muted">You have no registered vehicles.</p>
-            ) : (
-              <div className="grid" style={{ gap: 12 }}>
-                {vehicles.map(v => (
-                  <div key={v._id} className="card">
-                    <div className="space-between">
-                      <strong>{v.model}</strong>
-                      <span className="pill">{v.status}</span>
-                    </div>
-                    <p className="muted" style={{ margin: '0.5rem 0 0 0' }}>
-                      {v.registrationNumber} • {v.seatingCapacity} Seats • ⛽ {v.fuelEfficiency ? `${v.fuelEfficiency} km/l` : 'N/A'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="panel">
-            <h3>Add New Vehicle</h3>
-            <form onSubmit={handleSubmit}>
+        <div className="card card--flat">
+          <h3 className="mb-sm">Add New Vehicle</h3>
+          <form onSubmit={handleSubmit} className="grid gap-sm">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Vehicle Model</label>
               <input 
                 name="model"
-                placeholder="e.g., Honda City" 
                 value={formData.model}
                 onChange={handleChange}
+                placeholder="e.g. Honda City"
                 required
               />
-              
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Registration Number</label>
               <input 
                 name="registrationNumber"
-                placeholder="e.g., GJ 01 AB 1234" 
                 value={formData.registrationNumber}
                 onChange={handleChange}
+                placeholder="e.g. MH 01 AB 1234"
                 required
               />
-              
-              <label>Seating Capacity</label>
-              <input 
-                type="number"
-                name="seatingCapacity"
-                placeholder="4"
-                min="1"
-                value={formData.seatingCapacity}
-                onChange={handleChange}
-                required
-              />
-              
-              <label>Fuel Efficiency (km/l)</label>
-              <input 
-                type="number"
-                name="fuelEfficiency"
-                placeholder="15"
-                min="1"
-                value={formData.fuelEfficiency}
-                onChange={handleChange}
-                required
-              />
-              
-              <button type="submit" className="primary-btn mt-3" style={{ width: '100%' }} disabled={adding}>
-                {adding ? 'Adding...' : 'Add Vehicle'}
-              </button>
-            </form>
-          </div>
+            </div>
+            <div className="grid grid-2 gap-sm">
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Seating Capacity</label>
+                <input 
+                  type="number"
+                  name="seatingCapacity"
+                  value={formData.seatingCapacity}
+                  onChange={handleChange}
+                  min="1"
+                  required
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label>Fuel Efficiency (km/l)</label>
+                <input 
+                  type="number"
+                  name="fuelEfficiency"
+                  value={formData.fuelEfficiency}
+                  onChange={handleChange}
+                  min="1"
+                />
+              </div>
+            </div>
+            <button type="submit" className="primary-btn btn-block" disabled={adding}>
+              {adding ? 'Adding...' : 'Add Vehicle'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

@@ -22,10 +22,7 @@ export default function SignupScreen() {
 
     getOrganizations()
       .then((data) => {
-        if (!alive) {
-          return
-        }
-
+        if (!alive) return
         setOrganizations(data)
         setFormData((current) => ({
           ...current,
@@ -33,19 +30,13 @@ export default function SignupScreen() {
         }))
       })
       .catch(() => {
-        if (alive) {
-          setMessage('Unable to load organizations from the backend.')
-        }
+        if (alive) setMessage('Unable to load organizations from the backend.')
       })
       .finally(() => {
-        if (alive) {
-          setInitialLoading(false)
-        }
+        if (alive) setInitialLoading(false)
       })
 
-    return () => {
-      alive = false
-    }
+    return () => { alive = false }
   }, [])
 
   async function handleSubmit(event) {
@@ -69,9 +60,7 @@ export default function SignupScreen() {
       })
 
       setMessage(response.message)
-      setTimeout(() => {
-        navigate('/login')
-      }, 1200)
+      setTimeout(() => navigate('/login'), 1200)
     } catch (error) {
       setMessage(error.message)
     } finally {
@@ -80,91 +69,94 @@ export default function SignupScreen() {
   }
 
   return (
-    <div className="app-shell center">
-      <div className="hero-card" style={{ maxWidth: 680 }}>
-        <div className="topbar">
-          <div className="brand"><span>🚗</span><span>KarWaan</span></div>
-          <span className="pill">Create account</span>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
+      <div className="card" style={{ maxWidth: 520, width: '100%', padding: '2.5rem 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🚗</div>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Join your organization</h2>
+          <p className="muted">Register to start carpooling with colleagues.</p>
         </div>
 
-        <h2 className="title" style={{ fontSize: '1.7rem' }}>Join your organization pool</h2>
-        <p className="subtitle">Sign up to request approval from your company admin.</p>
-        <p className="muted" style={{ marginTop: 0 }}>
-          {initialLoading ? 'Loading organizations...' : 'Organizations loaded from the backend.'}
-        </p>
-
-        <form className="grid grid-2" onSubmit={handleSubmit}>
-          <div>
-            <label>Full Name</label>
-            <input
-              type="text"
-              placeholder="Khush Patel"
-              value={formData.name}
-              onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label>Phone</label>
-            <input
-              type="text"
-              placeholder="+91 98765 43210"
-              value={formData.phone}
-              onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="khush@odoo.com"
-              value={formData.email}
-              onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label>Organization</label>
-            <select
-              value={formData.organizationId}
-              onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
-              required
-            >
-              <option value="">Select organization</option>
-              {organizations.map((organization) => (
-                <option key={organization._id} value={organization._id}>{organization.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="Create password"
-              value={formData.password}
-              onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Confirm password"
-              value={formData.confirmPassword}
-              onChange={(event) => setFormData((current) => ({ ...current, confirmPassword: event.target.value }))}
-              required
-            />
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <div className="grid grid-2" style={{ gap: '1.2rem' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Full Name</label>
+              <input
+                type="text"
+                placeholder="Khush Patel"
+                value={formData.name}
+                onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Phone</label>
+              <input
+                type="text"
+                placeholder="+91 98765 43210"
+                value={formData.phone}
+                onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Email Address</label>
+              <input
+                type="email"
+                placeholder="khush@odoo.com"
+                value={formData.email}
+                onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Organization</label>
+              <select
+                value={formData.organizationId}
+                onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
+                required
+              >
+                <option value="">Select organization</option>
+                {organizations.map((organization) => (
+                  <option key={organization._id} value={organization._id}>{organization.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Password</label>
+              <input
+                type="password"
+                placeholder="Create password"
+                value={formData.password}
+                onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Confirm Password</label>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={(event) => setFormData((current) => ({ ...current, confirmPassword: event.target.value }))}
+                required
+              />
+            </div>
           </div>
 
-          <div style={{ gridColumn: '1 / -1' }}>
-            {message && <p className="muted" style={{ marginTop: 0 }}>{message}</p>}
-            <button className="primary-btn" style={{ width: '100%' }} disabled={loading || initialLoading}>
-              {loading ? 'Submitting...' : 'Register account'}
-            </button>
-            <p className="muted mt-3">Already have access? <Link to="/login">Login</Link></p>
-          </div>
+          {message && (
+            <div style={{ padding: '0.8rem', borderRadius: 'var(--radius-sm)', background: message.includes('Successfully') || message.includes('success') ? 'var(--success-bg)' : 'var(--danger-bg)', color: message.includes('Successfully') || message.includes('success') ? 'var(--success)' : 'var(--danger)', fontSize: '0.9rem', border: `1px solid ${message.includes('Successfully') || message.includes('success') ? '#6ee7b7' : '#fca5a5'}` }}>
+              {message}
+            </div>
+          )}
+
+          <button className="primary-btn" disabled={loading || initialLoading} style={{ marginTop: '0.5rem', width: '100%', padding: '0.8rem' }}>
+            {loading ? 'Creating Account...' : 'Sign Up'}
+          </button>
+
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            Already have an account? <Link to="/login" style={{ color: 'var(--accent)', fontWeight: 600 }}>Sign in</Link>
+          </p>
         </form>
       </div>
     </div>

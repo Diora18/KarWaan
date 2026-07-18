@@ -15,10 +15,7 @@ export default function LoginScreen() {
 
     getOrganizations()
       .then((data) => {
-        if (!alive) {
-          return
-        }
-
+        if (!alive) return
         setOrganizations(data)
         setFormData((current) => ({
           ...current,
@@ -26,19 +23,13 @@ export default function LoginScreen() {
         }))
       })
       .catch(() => {
-        if (alive) {
-          setMessage('Unable to load organizations from the backend.')
-        }
+        if (alive) setMessage('Unable to load organizations from the backend.')
       })
       .finally(() => {
-        if (alive) {
-          setInitialLoading(false)
-        }
+        if (alive) setInitialLoading(false)
       })
 
-    return () => {
-      alive = false
-    }
+    return () => { alive = false }
   }, [])
 
   async function handleSubmit(event) {
@@ -59,67 +50,72 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="app-shell center">
-      <div className="hero-card" style={{ maxWidth: 520 }}>
-        <div className="topbar">
-          <div className="brand"><span>🚗</span><span>KarWaan</span></div>
-          <span className="pill">Employee login</span>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
+      <div className="card" style={{ maxWidth: 450, width: '100%', padding: '2.5rem 2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🚗</div>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Welcome to KarWaan</h2>
+          <p className="muted">Sign in to your organization account.</p>
         </div>
 
-        <h2 className="title" style={{ fontSize: '1.7rem' }}>Welcome back</h2>
-        <p className="subtitle">Select your organization and continue to your commute dashboard.</p>
-        <p className="muted" style={{ marginTop: 0 }}>
-          {initialLoading ? 'Loading organizations...' : 'Organizations loaded from the backend.'}
-        </p>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Email Address</label>
+            <input
+              type="email"
+              placeholder="khush@odoo.com"
+              value={formData.email}
+              onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
+              required
+            />
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <label>Email</label>
-          <input
-            type="email"
-            placeholder="khush@odoo.com"
-            value={formData.email}
-            onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
-            required
-          />
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
+              required
+            />
+          </div>
 
-          <label>Password</label>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
-            required
-          />
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Organization</label>
+            <select
+              value={formData.organizationId}
+              onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
+              required
+            >
+              <option value="">Select organization</option>
+              {organizations.map((organization) => (
+                <option key={organization._id} value={organization._id}>{organization.name}</option>
+              ))}
+            </select>
+          </div>
 
-          <label>Organization</label>
-          <select
-            value={formData.organizationId}
-            onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
-            required
-          >
-            <option value="">Select organization</option>
-            {organizations.map((organization) => (
-              <option key={organization._id} value={organization._id}>{organization.name}</option>
-            ))}
-          </select>
+          {message && (
+            <div style={{ padding: '0.8rem', borderRadius: 'var(--radius-sm)', background: 'var(--danger-bg)', color: 'var(--danger)', fontSize: '0.9rem', border: '1px solid #fca5a5' }}>
+              {message}
+            </div>
+          )}
 
-          {message && <p className="muted" style={{ marginTop: 0 }}>{message}</p>}
-
-          <button className="primary-btn" style={{ width: '100%' }} disabled={loading || initialLoading}>
-            {loading ? 'Signing in...' : 'Login'}
+          <button className="primary-btn" disabled={loading || initialLoading} style={{ marginTop: '0.5rem', width: '100%', padding: '0.8rem' }}>
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
           
-          <div className="grid grid-2 mt-3" style={{ gap: 8 }}>
-            <button type="button" className="secondary-btn" onClick={() => {
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <button type="button" className="secondary-btn" style={{ flex: 1, padding: '0.5rem' }} onClick={() => {
               setFormData(f => ({ ...f, email: 'admin@odoo.com', password: 'Password123' }))
             }}>Use Admin</button>
-            <button type="button" className="secondary-btn" onClick={() => {
+            <button type="button" className="secondary-btn" style={{ flex: 1, padding: '0.5rem' }} onClick={() => {
               setFormData(f => ({ ...f, email: 'khush@odoo.com', password: 'Password123' }))
             }}>Use Employee</button>
           </div>
 
-          <p className="muted mt-3">
-            New here? <Link to="/signup">Create New Account</Link>
+          <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            New here? <Link to="/signup" style={{ color: 'var(--accent)', fontWeight: 600 }}>Create an account</Link>
           </p>
         </form>
       </div>

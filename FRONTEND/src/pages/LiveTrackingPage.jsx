@@ -38,7 +38,6 @@ export default function LiveTrackingPage() {
       })
     })
 
-    // Fetch ride info
     fetch(`${API_BASE}/api/rides/my`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -53,11 +52,10 @@ export default function LiveTrackingPage() {
       })
       .catch(console.error)
 
-    // Listen for location updates from other users (driver)
     socket.on('location_update', (data) => {
       if (data.rideId === rideId) {
         setDriverLocation(data.coordinates)
-        setSpeed(Math.round((data.speed || 0) * 3.6)) // m/s → km/h
+        setSpeed(Math.round((data.speed || 0) * 3.6))
         setLastUpdate(new Date())
       }
     })
@@ -74,7 +72,6 @@ export default function LiveTrackingPage() {
     }
   }, [rideId])
 
-  // If user is the driver, start broadcasting location
   useEffect(() => {
     if (!isDriver || !socketRef.current) return
 
@@ -120,7 +117,6 @@ export default function LiveTrackingPage() {
   const pickup = rideInfo?.pickupLocation?.coordinates
   const destination = rideInfo?.destinationLocation?.coordinates
 
-  // Poll ETA based on driver location
   useEffect(() => {
     if (!driverLocation || !destination) return
 
@@ -158,58 +154,47 @@ export default function LiveTrackingPage() {
     window.open(url, '_blank')
   }
 
+  const statusLabels = {
+    broadcasting: 'Broadcasting GPS',
+    connected: 'Tracking live',
+    connecting: 'Connecting...',
+    disconnected: 'Disconnected',
+    'gps-error': 'GPS Error',
+    'no-gps': 'No GPS',
+  }
+
+  const isLive = trackingStatus === 'broadcasting' || trackingStatus === 'connected'
+
   return (
-    <div style={{ height: 'calc(100vh - 58px)', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
-      {/* Info overlay */}
-      <div style={{
-        padding: '1rem 1.5rem',
-        background: 'var(--bg-secondary)',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '0.8rem',
-        zIndex: 10
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
-            <button className="secondary-btn" onClick={() => navigate('/my-trips')} style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem' }}>← Back</button>
-            <strong style={{ fontSize: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-primary)' }}>
+      <div style={{ padding: '1rem 1.5rem', background: 'white', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button className="secondary-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={() => navigate('/my-trips')}>← Back</button>
+            <strong style={{ fontSize: '1.2rem' }}>
               {rideInfo
                 ? `${rideInfo.pickupLocation?.address?.split(',')[0]} → ${rideInfo.destinationLocation?.address?.split(',')[0]}`
                 : 'Loading ride...'
               }
             </strong>
           </div>
-          <div className="row" style={{ gap: '1rem' }}>
-            <span className="pill" style={{
-              background: trackingStatus === 'broadcasting' || trackingStatus === 'connected' ? 'var(--success-bg)' : 'var(--danger-bg)',
-              color: trackingStatus === 'broadcasting' || trackingStatus === 'connected' ? 'var(--success)' : 'var(--danger)',
-            }}>
-              {trackingStatus === 'broadcasting' && '📡 Broadcasting GPS'}
-              {trackingStatus === 'connected' && '📡 Tracking live'}
-              {trackingStatus === 'connecting' && '⏳ Connecting...'}
-              {trackingStatus === 'disconnected' && '❌ Disconnected'}
-              {trackingStatus === 'gps-error' && '⚠️ GPS Error'}
-              {trackingStatus === 'no-gps' && '⚠️ No GPS'}
-            </span>
-            {speed > 0 && <span className="muted" style={{ fontSize: '0.85rem' }}>🏎️ {speed} km/h</span>}
-            {etaText && <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent)' }}>⏱️ {etaText}</span>}
-            {lastUpdate && <span className="muted" style={{ fontSize: '0.85rem' }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
-          </div>
-        </div>
-
-        <div className="row">
           {rideInfo && (
-            <button className="primary-btn" onClick={openInGoogleMaps} style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              🧭 Open Nav App
+            <button className="primary-btn" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }} onClick={openInGoogleMaps}>
+              Open Maps
             </button>
           )}
         </div>
+        
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
+          <span className={`pill ${isLive ? 'pill--success' : 'pill--danger'}`}>
+            {statusLabels[trackingStatus] || trackingStatus}
+          </span>
+          {speed > 0 && <span className="muted" style={{ fontSize: '0.9rem' }}>{speed} km/h</span>}
+          {etaText && <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent)' }}>{etaText}</span>}
+          {lastUpdate && <span className="muted" style={{ fontSize: '0.85rem' }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
+        </div>
       </div>
 
-      {/* Full-screen map */}
       <div style={{ flex: 1, position: 'relative' }}>
         <MapView
           pickup={pickup}

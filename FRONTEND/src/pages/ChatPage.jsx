@@ -28,7 +28,6 @@ export default function ChatPage() {
   useEffect(() => {
     let alive = true
 
-    // Load Chat History & Ride details
     Promise.all([
       getChatHistory(rideId),
       getMyTrips()
@@ -40,7 +39,6 @@ export default function ChatPage() {
       if (ride) setRideInfo(ride)
     }).catch(console.error)
 
-    // Setup Socket
     const token = getAuthToken()
     const newSocket = io('http://localhost:5000', {
       auth: { token }
@@ -70,61 +68,61 @@ export default function ChatPage() {
     setInputText('')
   }
   
-  // Calculate Call details
   let callName = 'Driver'
   let callPhone = ''
   
   if (rideInfo) {
     const isDriver = rideInfo.driverId?._id === user?._id || rideInfo.driverId === user?._id
     if (isDriver) {
-      // Driver calling passenger (if multiple, we just call the first for simplicity in this demo)
       callName = 'Passenger'
       callPhone = rideInfo.passengers?.[0]?.userId?.phone || ''
     } else {
-      // Passenger calling driver
       callName = rideInfo.driverId?.name || 'Driver'
       callPhone = rideInfo.driverId?.phone || ''
     }
   }
 
   return (
-    <div className="app-shell" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 58px)', overflow: 'hidden', padding: 0 }}>
-      <div className="topbar" style={{ padding: '0.8rem 1.2rem', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <button className="secondary-btn" onClick={() => navigate(-1)} style={{ padding: '0.4rem 0.8rem' }}>← Back</button>
-        <div style={{ flex: 1, textAlign: 'center', fontWeight: 600, fontSize: '0.9rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Header */}
+      <div style={{ padding: '1rem', background: 'white', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 10 }}>
+        <button className="secondary-btn" style={{ padding: '0.4rem 0.8rem', fontSize: '0.9rem' }} onClick={() => navigate(-1)}>← Back</button>
+        <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
           {rideInfo ? `${rideInfo.pickupLocation?.address.split(',')[0]} → ${rideInfo.destinationLocation?.address.split(',')[0]}` : 'Loading...'}
         </div>
         {callPhone ? (
-          <a href={`tel:${callPhone}`} className="primary-btn" style={{ padding: '0.4rem 0.8rem', textDecoration: 'none', background: 'linear-gradient(135deg, #059669, #34d399)' }}>
-            📞 Call {callName.split(' ')[0]}
+          <a href={`tel:${callPhone}`} className="primary-btn" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem', textDecoration: 'none', background: 'var(--success)' }}>
+            📞 Call
           </a>
         ) : (
-          <button className="secondary-btn" disabled style={{ padding: '0.4rem 0.8rem' }}>📞 Call</button>
+          <button className="secondary-btn" style={{ padding: '0.4rem 1rem', fontSize: '0.9rem', opacity: 0.5 }} disabled>📞 Call</button>
         )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      {/* Messages Area */}
+      <div style={{ flex: 1, padding: '1.5rem 1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '2rem' }}>
-            No messages yet. Say hello! 👋
+          <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👋</div>
+            <p>No messages yet. Say hello!</p>
           </div>
         )}
         {messages.map(msg => {
           const isMe = msg.senderId === user?._id
           return (
-            <div key={msg._id} style={{
-              alignSelf: isMe ? 'flex-end' : 'flex-start',
-              background: isMe ? 'linear-gradient(135deg, #0ea5e9, #6366f1)' : 'var(--bg-glass-hover)',
-              color: isMe ? 'white' : 'var(--text-primary)',
-              padding: '0.6rem 1rem',
-              borderRadius: '16px',
-              maxWidth: '75%',
-              wordBreak: 'break-word',
-              border: isMe ? 'none' : '1px solid var(--border)'
-            }}>
-              {!isMe && <div style={{ fontSize: '0.72rem', fontWeight: 600, marginBottom: '0.2rem', color: 'var(--accent)' }}>{msg.senderName}</div>}
-              <div>{msg.text}</div>
-              <div style={{ fontSize: '0.68rem', opacity: 0.7, textAlign: 'right', marginTop: '0.2rem' }}>
+            <div key={msg._id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
+              {!isMe && <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.2rem', marginLeft: '0.5rem' }}>{msg.senderName}</div>}
+              <div style={{ 
+                background: isMe ? 'var(--accent)' : 'white', 
+                color: isMe ? 'white' : 'var(--text-primary)', 
+                padding: '0.8rem 1.2rem', 
+                borderRadius: isMe ? '16px 16px 0 16px' : '16px 16px 16px 0',
+                border: isMe ? 'none' : '1px solid var(--border)',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                {msg.text}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem', textAlign: isMe ? 'right' : 'left', marginRight: isMe ? '0.5rem' : 0, marginLeft: isMe ? 0 : '0.5rem' }}>
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
             </div>
@@ -133,16 +131,21 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} style={{ padding: '0.8rem 1rem', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem' }}>
-        <input 
-          type="text" 
-          placeholder="Type a message..." 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          style={{ flex: 1, marginBottom: 0 }}
-        />
-        <button type="submit" className="primary-btn" disabled={!inputText.trim()}>Send</button>
-      </form>
+      {/* Input Area */}
+      <div style={{ padding: '1rem', background: 'white', borderTop: '1px solid var(--border)' }}>
+        <form onSubmit={sendMessage} style={{ display: 'flex', gap: '0.5rem', maxWidth: 'var(--content-max)', margin: '0 auto' }}>
+          <input 
+            type="text" 
+            placeholder="Type a message..." 
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            style={{ flex: 1, padding: '0.8rem 1.2rem', borderRadius: '99px', border: '1px solid var(--border)', background: 'var(--bg-primary)' }}
+          />
+          <button type="submit" className="primary-btn" disabled={!inputText.trim()} style={{ padding: '0 1.5rem', borderRadius: '99px' }}>
+            Send
+          </button>
+        </form>
+      </div>
     </div>
   )
 }

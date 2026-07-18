@@ -82,135 +82,133 @@ export default function OfferRidePage() {
 
   return (
     <div className="app-shell">
-      <div className="hero-card">
-        <div className="topbar">
-          <div className="brand"><span>🚘</span><span>Offer a Ride</span></div>
-          <span className="badge">Publish commute</span>
+      <header className="page-header">
+        <p className="page-eyebrow">Share</p>
+        <h1>Offer a Ride</h1>
+        <p className="page-subtitle">Driving somewhere? Share your empty seats and earn.</p>
+      </header>
+
+      {message.text && (
+        <div className={`alert alert--${message.type === 'error' ? 'error' : 'success'}`}>
+          {message.text}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="grid grid-2">
+        <div className="card card--flat grid gap-sm">
+          <h3>Route & Schedule</h3>
+            
+          <AddressAutocomplete
+            label="Pickup location"
+            placeholder="Search pickup address..."
+            value={pickupLocation}
+            onChange={setPickupLocation}
+          />
+          
+          <AddressAutocomplete
+            label="Destination"
+            placeholder="Search destination..."
+            value={destinationLocation}
+            onChange={setDestinationLocation}
+          />
+          
+          <div className="grid grid-2 gap-sm">
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Date</label>
+              <input 
+                type="date" 
+                name="departureDate"
+                value={formData.departureDate}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Time</label>
+              <input 
+                type="time" 
+                name="departureTime"
+                value={formData.departureTime}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-2 gap-sm">
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Available seats</label>
+              <input 
+                type="number" 
+                name="availableSeats"
+                min="1"
+                value={formData.availableSeats}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Fare per seat (₹)</label>
+              <input 
+                type="number" 
+                name="farePerSeat"
+                min="0"
+                value={formData.farePerSeat}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+
+          {loadingVehicles ? (
+            <p className="loading-text">Loading vehicles...</p>
+          ) : vehicles.length === 0 ? (
+            <div className="alert alert--error">No active vehicles. Please add one first.</div>
+          ) : (
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label>Select Vehicle</label>
+              <select 
+                name="vehicleId" 
+                value={formData.vehicleId}
+                onChange={handleChange}
+                required
+              >
+                {vehicles.map(v => (
+                  <option key={v._id} value={v._id}>
+                    {v.model} ({v.registrationNumber})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className="primary-btn btn-block" 
+            disabled={publishing || vehicles.length === 0}
+          >
+            {publishing ? 'Publishing...' : 'Publish Ride'}
+          </button>
         </div>
 
-        {message.text && (
-          <div style={{ padding: '1rem', marginBottom: '1rem', borderRadius: 8, background: message.type === 'error' ? 'var(--danger-bg)' : 'var(--success-bg)', color: message.type === 'error' ? 'var(--danger)' : 'var(--success)' }}>
-            {message.text}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="grid grid-2">
-          <div className="panel">
-            <h3>Route & Schedule</h3>
-            
-            <AddressAutocomplete
-              label="Pickup location"
-              placeholder="Search pickup address..."
-              value={pickupLocation}
-              onChange={setPickupLocation}
-            />
-            
-            <AddressAutocomplete
-              label="Destination"
-              placeholder="Search destination..."
-              value={destinationLocation}
-              onChange={setDestinationLocation}
-            />
-            
-            <div className="grid grid-2">
+        <div className="card card--flat map-panel">
+          <h3 className="mb-sm">Route Preview</h3>
+          {(!pickupLocation && !destinationLocation) ? (
+            <div className="map-placeholder">
               <div>
-                <label>Date</label>
-                <input 
-                  type="date" 
-                  name="departureDate"
-                  value={formData.departureDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Time</label>
-                <input 
-                  type="time" 
-                  name="departureTime"
-                  value={formData.departureTime}
-                  onChange={handleChange}
-                  required
-                />
+                <div className="map-placeholder-icon">🗺️</div>
+                <p>Pick a start and end point to preview the route on the map.</p>
               </div>
             </div>
-            
-            <div className="grid grid-2">
-              <div>
-                <label>Available seats</label>
-                <input 
-                  type="number" 
-                  name="availableSeats"
-                  min="1"
-                  value={formData.availableSeats}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <label>Fare per seat (₹)</label>
-                <input 
-                  type="number" 
-                  name="farePerSeat"
-                  min="0"
-                  value={formData.farePerSeat}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            {loadingVehicles ? (
-              <p className="muted">Loading vehicles...</p>
-            ) : vehicles.length === 0 ? (
-              <p className="muted" style={{ color: 'var(--danger)' }}>No active vehicles. Please add one first.</p>
-            ) : (
-              <>
-                <label>Select Vehicle</label>
-                <select 
-                  name="vehicleId" 
-                  value={formData.vehicleId}
-                  onChange={handleChange}
-                  required
-                >
-                  {vehicles.map(v => (
-                    <option key={v._id} value={v._id}>
-                      {v.model} ({v.registrationNumber})
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
-
-            <button 
-              type="submit" 
-              className="primary-btn mt-3" 
-              style={{ width: '100%' }}
-              disabled={publishing || vehicles.length === 0}
-            >
-              {publishing ? 'Publishing...' : 'Publish ride'}
-            </button>
-          </div>
-
-          <div className="panel" style={{ display: 'flex', flexDirection: 'column', minHeight: 420 }}>
-            <h3>Route Preview</h3>
-            {(!pickupLocation && !destinationLocation) ? (
-              <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--text-muted)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🗺️</div>
-                  <p>Pick a start and end point to preview the route on the map.</p>
-                </div>
-              </div>
-            ) : (
-              <MapView
-                pickup={pickupLocation?.coordinates}
-                destination={destinationLocation?.coordinates}
-                height="100%"
-              />
-            )}
-          </div>
-        </form>
-      </div>
+          ) : (
+            <MapView
+              pickup={pickupLocation?.coordinates}
+              destination={destinationLocation?.coordinates}
+              height="100%"
+            />
+          )}
+        </div>
+      </form>
     </div>
   )
 }

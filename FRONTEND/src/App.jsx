@@ -16,17 +16,21 @@ import ChatPage from './pages/ChatPage.jsx'
 import LiveTrackingPage from './pages/LiveTrackingPage.jsx'
 import Navbar from './components/Navbar.jsx'
 
-const noNavbarRoutes = ['/', '/login', '/signup']
+const noSidebarRoutes = ['/', '/login', '/signup']
+const fullBleedPrefixes = ['/chat/', '/track/']
 
 function AppLayout({ children }) {
   const location = useLocation()
-  const showNavbar = !noNavbarRoutes.includes(location.pathname)
+  const isFullBleed = fullBleedPrefixes.some(prefix => location.pathname.startsWith(prefix))
+  const showSidebar = !noSidebarRoutes.includes(location.pathname) && !isFullBleed
 
   return (
-    <>
-      {showNavbar && <Navbar />}
-      {children}
-    </>
+    <div className={`app-layout ${showSidebar ? 'app-layout--with-sidebar' : ''}`}>
+      {showSidebar && <Navbar />}
+      <main className={`app-main ${!showSidebar ? 'app-main--full' : ''}`}>
+        {children}
+      </main>
+    </div>
   )
 }
 
