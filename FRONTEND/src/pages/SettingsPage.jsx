@@ -133,8 +133,8 @@ export default function SettingsPage() {
             <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>Set your default home location for quicker matching.</p>
             <AddressAutocomplete 
               placeholder="Search home address..."
-              onPlaceSelected={(place) => setHomeLocation(place)}
-              initialValue={homeLocation?.address}
+              onChange={(place) => setHomeLocation(place)}
+              value={homeLocation}
             />
           </div>
           
@@ -143,8 +143,8 @@ export default function SettingsPage() {
             <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>Set your default office location.</p>
             <AddressAutocomplete 
               placeholder="Search office address..."
-              onPlaceSelected={(place) => setOfficeLocation(place)}
-              initialValue={officeLocation?.address}
+              onChange={(place) => setOfficeLocation(place)}
+              value={officeLocation}
             />
           </div>
 

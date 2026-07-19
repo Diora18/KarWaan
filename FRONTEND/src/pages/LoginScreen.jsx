@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
     let alive = true
@@ -34,10 +35,24 @@ export default function LoginScreen() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setLoading(true)
     setMessage('')
+    setErrors({})
+
+    const newErrors = {}
+    if (!formData.email.trim()) newErrors.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format'
+    
+    if (!formData.password) newErrors.password = 'Password is required'
+    
+    if (!formData.organizationId) newErrors.organizationId = 'Please select an organization'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
 
     try {
+      setLoading(true)
       const response = await login(formData)
       localStorage.setItem('karwaan_token', response.token)
       localStorage.setItem('karwaan_user', JSON.stringify(response.user))
@@ -60,16 +75,17 @@ export default function LoginScreen() {
           <p className="muted">Sign in to your organization account.</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }} noValidate>
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Email Address</label>
             <input
               type="email"
               placeholder="khush@odoo.com"
               value={formData.email}
-              onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
-              required
+              onChange={(event) => { setFormData((current) => ({ ...current, email: event.target.value })); if(errors.email) setErrors(e => ({...e, email: ''})) }}
+              style={{ borderColor: errors.email ? 'var(--danger)' : undefined }}
             />
+            {errors.email && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.email}</div>}
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -78,23 +94,25 @@ export default function LoginScreen() {
               type="password"
               placeholder="••••••••"
               value={formData.password}
-              onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
-              required
+              onChange={(event) => { setFormData((current) => ({ ...current, password: event.target.value })); if(errors.password) setErrors(e => ({...e, password: ''})) }}
+              style={{ borderColor: errors.password ? 'var(--danger)' : undefined }}
             />
+            {errors.password && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.password}</div>}
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label>Organization</label>
             <select
               value={formData.organizationId}
-              onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
-              required
+              onChange={(event) => { setFormData((current) => ({ ...current, organizationId: event.target.value })); if(errors.organizationId) setErrors(e => ({...e, organizationId: ''})) }}
+              style={{ borderColor: errors.organizationId ? 'var(--danger)' : undefined }}
             >
               <option value="">Select organization</option>
               {organizations.map((organization) => (
                 <option key={organization._id} value={organization._id}>{organization.name}</option>
               ))}
             </select>
+            {errors.organizationId && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.organizationId}</div>}
           </div>
 
           {message && (

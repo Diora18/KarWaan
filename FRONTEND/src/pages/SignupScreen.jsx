@@ -39,12 +39,34 @@ export default function SignupScreen() {
     return () => { alive = false }
   }, [])
 
+  const [errors, setErrors] = useState({})
+
   async function handleSubmit(event) {
     event.preventDefault()
     setMessage('')
+    setErrors({})
 
+    const newErrors = {}
+    if (!formData.name.trim()) newErrors.name = 'Full name is required'
+    else if (formData.name.length < 2) newErrors.name = 'Name must be at least 2 characters'
+    
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
+    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits'
+    
+    if (!formData.email.trim()) newErrors.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format'
+    
+    if (!formData.organizationId) newErrors.organizationId = 'Please select an organization'
+    
+    if (!formData.password) newErrors.password = 'Password is required'
+    else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters'
+    
     if (formData.password !== formData.confirmPassword) {
-      setMessage('Passwords do not match.')
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
 
@@ -79,7 +101,7 @@ export default function SignupScreen() {
           <p className="muted">Register to start carpooling with colleagues.</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }} noValidate>
           <div className="grid grid-2" style={{ gap: '1.2rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Full Name</label>
@@ -87,19 +109,21 @@ export default function SignupScreen() {
                 type="text"
                 placeholder="Khush Patel"
                 value={formData.name}
-                onChange={(event) => setFormData((current) => ({ ...current, name: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, name: event.target.value })); if(errors.name) setErrors(e => ({...e, name: ''})) }}
+                style={{ borderColor: errors.name ? 'var(--danger)' : undefined }}
               />
+              {errors.name && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.name}</div>}
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Phone</label>
               <input
                 type="text"
-                placeholder="+91 98765 43210"
+                placeholder="9876543210"
                 value={formData.phone}
-                onChange={(event) => setFormData((current) => ({ ...current, phone: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, phone: event.target.value })); if(errors.phone) setErrors(e => ({...e, phone: ''})) }}
+                style={{ borderColor: errors.phone ? 'var(--danger)' : undefined }}
               />
+              {errors.phone && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.phone}</div>}
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Email Address</label>
@@ -107,22 +131,24 @@ export default function SignupScreen() {
                 type="email"
                 placeholder="khush@odoo.com"
                 value={formData.email}
-                onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, email: event.target.value })); if(errors.email) setErrors(e => ({...e, email: ''})) }}
+                style={{ borderColor: errors.email ? 'var(--danger)' : undefined }}
               />
+              {errors.email && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.email}</div>}
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Organization</label>
               <select
                 value={formData.organizationId}
-                onChange={(event) => setFormData((current) => ({ ...current, organizationId: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, organizationId: event.target.value })); if(errors.organizationId) setErrors(e => ({...e, organizationId: ''})) }}
+                style={{ borderColor: errors.organizationId ? 'var(--danger)' : undefined }}
               >
                 <option value="">Select organization</option>
                 {organizations.map((organization) => (
                   <option key={organization._id} value={organization._id}>{organization.name}</option>
                 ))}
               </select>
+              {errors.organizationId && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.organizationId}</div>}
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Password</label>
@@ -130,9 +156,10 @@ export default function SignupScreen() {
                 type="password"
                 placeholder="Create password"
                 value={formData.password}
-                onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, password: event.target.value })); if(errors.password) setErrors(e => ({...e, password: ''})) }}
+                style={{ borderColor: errors.password ? 'var(--danger)' : undefined }}
               />
+              {errors.password && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.password}</div>}
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Confirm Password</label>
@@ -140,9 +167,10 @@ export default function SignupScreen() {
                 type="password"
                 placeholder="Confirm password"
                 value={formData.confirmPassword}
-                onChange={(event) => setFormData((current) => ({ ...current, confirmPassword: event.target.value }))}
-                required
+                onChange={(event) => { setFormData((current) => ({ ...current, confirmPassword: event.target.value })); if(errors.confirmPassword) setErrors(e => ({...e, confirmPassword: ''})) }}
+                style={{ borderColor: errors.confirmPassword ? 'var(--danger)' : undefined }}
               />
+              {errors.confirmPassword && <div style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '0.2rem' }}>{errors.confirmPassword}</div>}
             </div>
           </div>
 
