@@ -25,8 +25,10 @@ export default function SplashScreen() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
-      <div style={{ maxWidth: 600, width: '100%', textAlign: 'center', padding: '4rem 2rem' }}>
-        <div style={{ fontSize: '4rem', marginBottom: '1rem', display: 'inline-block', background: 'white', padding: '1.5rem', borderRadius: '50%', boxShadow: 'var(--shadow-md)' }}>🚗</div>
+      <div className="splash-content" style={{ animation: 'bounceIn 1s cubic-bezier(0.36, 0, 0.66, -0.56)', maxWidth: 600, width: '100%', textAlign: 'center', padding: '4rem 2rem' }}>
+        <div style={{ marginBottom: '1.5rem', display: 'inline-block', background: 'white', padding: '1rem', borderRadius: '50%', boxShadow: 'var(--shadow-md)' }}>
+          <img src="/logo.png" alt="KarWaan Logo" style={{ width: '120px', height: '120px', objectFit: 'contain' }} />
+        </div>
         <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.05em' }}>KarWaan</h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6', maxWidth: 450, margin: '0 auto 2rem' }}>
           Ride together, save together. One secure platform for finding, sharing, and tracking employee rides.

@@ -70,10 +70,12 @@ export default function SignupScreen() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
-      <div className="card" style={{ maxWidth: 520, width: '100%', padding: '2.5rem 2rem' }}>
+      <div className="card" style={{ maxWidth: 450, width: '100%', padding: '2.5rem 2rem', margin: '2rem 0' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🚗</div>
-          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Join your organization</h2>
+          <div style={{ marginBottom: '1rem' }}>
+            <img src="/logo.png" alt="KarWaan Logo" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+          </div>
+          <h2 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Create Account</h2>
           <p className="muted">Register to start carpooling with colleagues.</p>
         </div>
 

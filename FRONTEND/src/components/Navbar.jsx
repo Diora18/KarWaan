@@ -105,7 +105,9 @@ export default function Navbar() {
 
       <aside className={`sidebar ${mobileOpen ? 'sidebar--open' : ''}`}>
         <NavLink to="/dashboard" className="sidebar-brand" onClick={closeMobile}>
-          <div className="sidebar-logo">🚗</div>
+          <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="/logo.png" alt="KarWaan Logo" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+          </div>
           <span className="sidebar-title">KarWaan</span>
         </NavLink>
 
