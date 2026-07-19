@@ -1,58 +1,32 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getOrganizations } from '../lib/api.js'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 export default function SplashScreen() {
-  const [organizations, setOrganizations] = useState([])
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    let alive = true
+    const timer = setTimeout(() => {
+      navigate('/login')
+    }, 2500)
 
-    getOrganizations()
-      .then((data) => {
-        if (alive) setOrganizations(data)
-      })
-      .catch(() => {
-        if (alive) setOrganizations([])
-      })
-      .finally(() => {
-        if (alive) setLoading(false)
-      })
-
-    return () => { alive = false }
-  }, [])
+    return () => clearTimeout(timer)
+  }, [navigate])
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
-      <div className="splash-content" style={{ animation: 'bounceIn 1s cubic-bezier(0.36, 0, 0.66, -0.56)', maxWidth: 600, width: '100%', textAlign: 'center', padding: '4rem 2rem' }}>
-        <div style={{ marginBottom: '1.5rem', display: 'inline-block', background: 'white', padding: '1rem', borderRadius: '50%', boxShadow: 'var(--shadow-md)' }}>
-          <img src="/logo.png" alt="KarWaan Logo" style={{ width: '120px', height: '120px', objectFit: 'contain' }} />
-        </div>
-        <h1 style={{ fontSize: '3rem', marginBottom: '1rem', color: 'var(--text-primary)', letterSpacing: '-0.05em' }}>KarWaan</h1>
-        <p style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6', maxWidth: 450, margin: '0 auto 2rem' }}>
-          Ride together, save together. One secure platform for finding, sharing, and tracking employee rides.
-        </p>
-
-        <p className="muted" style={{ marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          {loading ? 'Connecting to backend...' : `${organizations.length} organizations connected`}
-        </p>
-
-        {organizations.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginBottom: '3rem' }}>
-            {organizations.slice(0, 4).map((org) => (
-              <span key={org._id} className="pill" style={{ background: 'white', border: '1px solid var(--border)' }}>{org.name}</span>
-            ))}
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', background: 'var(--bg-primary)' }}>
+      <div className="splash-content" style={{ animation: 'bounceIn 1s cubic-bezier(0.36, 0, 0.66, -0.56)', maxWidth: 800, width: '100%', padding: '4rem 2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3rem', flexWrap: 'wrap' }}>
+          <div style={{ background: 'white', padding: '1.5rem', borderRadius: '24px', boxShadow: 'var(--shadow-lg)' }}>
+            <img src="/logo.png" alt="KarWaan Logo" style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block' }} />
           </div>
-        )}
-
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center' }}>
-          <Link to="/login" style={{ flex: 1, maxWidth: 200 }}>
-            <button className="primary-btn" style={{ width: '100%', padding: '0.8rem 0' }}>Sign in</button>
-          </Link>
-          <Link to="/signup" style={{ flex: 1, maxWidth: 200 }}>
-            <button className="secondary-btn" style={{ width: '100%', padding: '0.8rem 0' }}>Create account</button>
-          </Link>
+          <div style={{ textAlign: 'left' }}>
+            <h1 style={{ fontSize: '3.5rem', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
+              Ride Together
+            </h1>
+            <h1 style={{ fontSize: '3.5rem', margin: 0, color: 'var(--text-secondary)', letterSpacing: '-0.02em', lineHeight: '1.2' }}>
+              Save Together
+            </h1>
+          </div>
         </div>
       </div>
     </div>
