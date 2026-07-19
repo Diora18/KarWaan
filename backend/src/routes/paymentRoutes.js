@@ -5,6 +5,7 @@ import { User } from '../models/User.js'
 import { Transaction } from '../models/Transaction.js'
 import { requireAuth } from '../middleware/auth.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { payRideFare } from '../controllers/paymentController.js'
 
 const router = express.Router()
 
@@ -18,6 +19,8 @@ const getRazorpayInstance = () => {
     key_secret: process.env.RAZORPAY_KEY_SECRET
   })
 }
+
+router.post('/ride-fare', requireAuth, payRideFare)
 
 /**
  * @route POST /api/payment/create-order

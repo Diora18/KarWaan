@@ -50,14 +50,14 @@ export default function MyTripsPage() {
     }
   }
 
-  const handlePayFare = async (rideId) => {
+  const handlePayFare = async (rideId, method) => {
     setUpdatingId(rideId)
     setMessage({ type: '', text: '' })
 
     try {
-      await payRideFare(rideId)
+      await payRideFare(rideId, method)
       await loadTrips()
-      setMessage({ type: 'success', text: 'Fare paid successfully! Wallet deducted.' })
+      setMessage({ type: 'success', text: `Fare paid via ${method} successfully!` })
     } catch (err) {
       setMessage({ type: 'error', text: 'Payment failed: ' + err.message })
     } finally {
@@ -198,10 +198,16 @@ export default function MyTripsPage() {
                           const passenger = ride.passengers?.find(p => p.userId?._id === user?._id || p.userId === user?._id)
                           if (passenger && passenger.farePaid === 0 && ride.status !== 'Cancelled') {
                             return (
-                              <button className="primary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
-                                onClick={() => handlePayFare(ride._id)} disabled={updatingId === ride._id}>
-                                {updatingId === ride._id ? 'Paying...' : `💰 Pay ₹${ride.farePerSeat * passenger.seatsBooked}`}
-                              </button>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button className="primary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                                  onClick={() => handlePayFare(ride._id, 'Wallet')} disabled={updatingId === ride._id}>
+                                  {updatingId === ride._id ? 'Paying...' : `💳 Pay Wallet (₹${ride.farePerSeat * passenger.seatsBooked})`}
+                                </button>
+                                <button className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                                  onClick={() => handlePayFare(ride._id, 'Cash')} disabled={updatingId === ride._id}>
+                                  {updatingId === ride._id ? 'Paying...' : `💵 Pay Cash (₹${ride.farePerSeat * passenger.seatsBooked})`}
+                                </button>
+                              </div>
                             )
                           }
                           if (passenger && passenger.farePaid > 0) {

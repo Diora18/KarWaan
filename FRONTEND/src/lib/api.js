@@ -131,10 +131,10 @@ export function rechargeWallet(payload) {
   })
 }
 
-export function payRideFare(rideId) {
+export function payRideFare(rideId, method = 'Wallet') {
   return request('/payments/ride-fare', {
     method: 'POST',
-    body: JSON.stringify({ rideId, method: 'Wallet' })
+    body: JSON.stringify({ rideId, method })
   })
 }
 
