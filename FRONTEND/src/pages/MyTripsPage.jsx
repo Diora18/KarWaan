@@ -1,0 +1,289 @@
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { getMyTrips, updateTripStatus, payRideFare, confirmCashPayment } from '../lib/api.js'
+import { getStoredSession } from '../lib/auth.js'
+
+function formatTime(dateString) {
+  return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDate(dateString) {
+  return new Date(dateString).toLocaleDateString('en-IN', {
+    weekday: 'short', day: 'numeric', month: 'short'
+  })
+}
+
+export default function MyTripsPage() {
+  const { user } = getStoredSession() || {}
+  const [rides, setRides] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  const [updatingId, setUpdatingId] = useState(null)
+
+  const loadTrips = async () => {
+    try {
+      const data = await getMyTrips()
+      setRides(data)
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to load trips: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadTrips()
+  }, [])
+
+  const handleStatusChange = async (rideId, newStatus) => {
+    setUpdatingId(rideId)
+    setMessage({ type: '', text: '' })
+    
+    try {
+      await updateTripStatus(rideId, newStatus)
+      await loadTrips()
+      setMessage({ type: 'success', text: `Trip updated to ${newStatus}` })
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const handlePayFare = async (rideId, method) => {
+    setUpdatingId(rideId)
+    setMessage({ type: '', text: '' })
+
+    try {
+      await payRideFare(rideId, method)
+      await loadTrips()
+      setMessage({ type: 'success', text: `Fare paid via ${method} successfully!` })
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Payment failed: ' + err.message })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const handleConfirmCash = async (rideId, passengerId) => {
+    setUpdatingId(`${rideId}-${passengerId}`)
+    setMessage({ type: '', text: '' })
+
+    try {
+      await confirmCashPayment(rideId, passengerId)
+      await loadTrips()
+      setMessage({ type: 'success', text: 'Cash payment confirmed successfully!' })
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Confirmation failed: ' + err.message })
+    } finally {
+      setUpdatingId(null)
+    }
+  }
+
+  const statusColors = {
+    Active: { bg: '#dcfce7', text: '#16a34a', border: '#86efac' },
+    Scheduled: { bg: '#fef3c7', text: '#d97706', border: '#fde68a' },
+    Completed: { bg: '#f1f5f9', text: '#64748b', border: '#e2e8f0' },
+    Cancelled: { bg: '#fee2e2', text: '#dc2626', border: '#fecaca' },
+  }
+
+  return (
+    <div className="app-shell">
+      <header className="page-header">
+        <h1>My Trips</h1>
+        <p className="page-subtitle">Manage your active bookings and driving schedules.</p>
+      </header>
+
+      {message.text && (
+        <div className={`alert alert--${message.type === 'error' ? 'error' : 'success'}`}>
+          <span>{message.text}</span>
+          {message.type === 'error' && message.text.includes('Insufficient balance') && (
+            <Link to="/wallet" className="primary-btn btn-sm" style={{ textDecoration: 'none' }}>
+              Add Funds
+            </Link>
+          )}
+        </div>
+      )}
+
+      {loading ? (
+        <p style={{ color: 'var(--text-muted)', padding: '2rem 0' }}>Loading your trips...</p>
+      ) : rides.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🗓️</div>
+          <p style={{ fontSize: '1.1rem' }}>You have no active trips.</p>
+          <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>Find or offer a ride to get started!</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {rides.map(ride => {
+            const isDriver = ride.driverId?._id === user?._id || ride.driverId === user?._id
+            const pickup = ride.pickupLocation?.address?.split(',')[0] || 'Unknown'
+            const dropoff = ride.destinationLocation?.address?.split(',')[0] || 'Unknown'
+            const sc = statusColors[ride.status] || statusColors.Scheduled
+
+            return (
+              <div key={ride._id} style={{
+                background: 'white',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden',
+                boxShadow: 'var(--shadow-xs)',
+              }}>
+                {/* Color strip at top */}
+                <div style={{ height: 4, background: sc.text }} />
+
+                <div style={{ padding: '1.25rem 1.5rem' }}>
+                  {/* Header row */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                    <div>
+                      <h3 style={{ fontSize: '1.15rem', marginBottom: '0.3rem' }}>{pickup} → {dropoff}</h3>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        <span>{formatDate(ride.departureTime)} at {formatTime(ride.departureTime)}</span>
+                        <span>•</span>
+                        <span style={{ fontWeight: 600, color: isDriver ? 'var(--accent)' : 'var(--text-secondary)' }}>{isDriver ? 'Driver' : 'Passenger'}</span>
+                      </div>
+                    </div>
+                    <span style={{
+                      padding: '4px 12px', borderRadius: 99, fontSize: '0.75rem', fontWeight: 600,
+                      background: sc.bg, color: sc.text, border: `1px solid ${sc.border}`,
+                    }}>
+                      {ride.status}
+                    </span>
+                  </div>
+
+                  {/* Detail grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                    {!isDriver && (
+                      <div style={{ background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Driver</div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ride.driverId?.name}</div>
+                      </div>
+                    )}
+                    <div style={{ background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vehicle</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ride.vehicleId?.model} <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>({ride.vehicleId?.registrationNumber})</span></div>
+                    </div>
+                    <div style={{ background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Passengers</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{ride.passengers?.reduce((sum, p) => sum + (p.seatsBooked || 1), 0) || 0} booked</div>
+                    </div>
+                    <div style={{ background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fare</div>
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--accent)' }}>₹{ride.farePerSeat}/seat</div>
+                    </div>
+                  </div>
+
+                  {isDriver && ride.passengers?.length > 0 && (
+                    <div style={{ marginBottom: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Passenger Breakdown</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {ride.passengers.map((p, idx) => (
+                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-primary)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{p.userId?.name || 'Passenger'}</div>
+                              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>({p.seatsBooked} seat{p.seatsBooked > 1 ? 's' : ''})</span>
+                            </div>
+                            <span className={`pill ${p.paymentStatus === 'Paid' ? 'pill--success' : p.paymentStatus === 'Pending' ? '' : 'pill--danger'}`} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', background: p.paymentStatus === 'Pending' ? '#fef3c7' : undefined, color: p.paymentStatus === 'Pending' ? '#d97706' : undefined, border: p.paymentStatus === 'Pending' ? '1px solid #fde68a' : undefined }}>
+                              {p.paymentStatus === 'Pending' ? 'Cash Pending' : p.paymentStatus}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                    {isDriver ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          {ride.status === 'Scheduled' && (
+                            <button className="primary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                              onClick={() => handleStatusChange(ride._id, 'Active')} disabled={updatingId === ride._id}>
+                              {updatingId === ride._id ? 'Updating...' : '▶ Start Trip'}
+                            </button>
+                          )}
+                          {ride.status === 'Active' && (
+                            <>
+                              <button className="primary-btn btn-success" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                                onClick={() => handleStatusChange(ride._id, 'Completed')} disabled={updatingId === ride._id}>
+                                {updatingId === ride._id ? 'Updating...' : '✓ Complete Trip'}
+                              </button>
+                              <Link to={`/chat/${ride._id}`} className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}>💬 Chat</Link>
+                              <Link to={`/track/${ride._id}`} className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}>📍 Track</Link>
+                            </>
+                          )}
+                          {['Completed', 'Cancelled'].includes(ride.status) && (
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Trip finished</span>
+                          )}
+                        </div>
+
+                        {/* Pending Cash Confirmations */}
+                        {ride.passengers?.filter(p => p.paymentStatus === 'Pending').length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem', padding: '0.5rem', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 'var(--radius-sm)' }}>
+                            <span style={{ fontSize: '0.85rem', color: '#ea580c', fontWeight: 600, display: 'flex', alignItems: 'center', marginRight: '0.5rem' }}>
+                              ⚠️ Pending Cash:
+                            </span>
+                            {ride.passengers.filter(p => p.paymentStatus === 'Pending').map(p => {
+                              const pId = p.userId?._id || p.userId
+                              const isUpdating = updatingId === `${ride._id}-${pId}`
+                              return (
+                                <button key={pId} className="primary-btn" style={{ padding: '0.3rem 0.75rem', fontSize: '0.8rem', background: '#16a34a', borderColor: '#16a34a' }}
+                                  onClick={() => handleConfirmCash(ride._id, pId)} disabled={isUpdating}>
+                                  {isUpdating ? 'Confirming...' : `Confirm ₹${ride.farePerSeat * p.seatsBooked} from ${p.userId?.name || 'Passenger'}`}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {ride.status === 'Scheduled' && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>⏳ Waiting for driver to start</span>}
+                        {ride.status === 'Active' && (
+                          <>
+                            <Link to={`/chat/${ride._id}`} className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}>💬 Chat</Link>
+                            <Link to={`/track/${ride._id}`} className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', textDecoration: 'none' }}>📍 Track Live</Link>
+                          </>
+                        )}
+                        {['Completed', 'Cancelled'].includes(ride.status) && (
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Trip finished</span>
+                        )}
+                        {(() => {
+                          const passenger = ride.passengers?.find(p => p.userId?._id === user?._id || p.userId === user?._id)
+                          if (!passenger || ride.status === 'Cancelled') return null
+                          
+                          if (passenger.paymentStatus === 'Paid') {
+                            return <span className="pill pill--success">✓ Paid ₹{passenger.farePaid} ({passenger.paymentMethod})</span>
+                          }
+
+                          if (passenger.paymentStatus === 'Pending') {
+                            return <span className="pill" style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>⏳ Waiting for driver to confirm cash</span>
+                          }
+
+                          // Unpaid
+                          return (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button className="primary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                                onClick={() => handlePayFare(ride._id, 'Wallet')} disabled={updatingId === ride._id}>
+                                {updatingId === ride._id ? 'Paying...' : `💳 Pay Wallet (₹${ride.farePerSeat * passenger.seatsBooked})`}
+                              </button>
+                              <button className="secondary-btn" style={{ padding: '0.45rem 1rem', fontSize: '0.85rem' }}
+                                onClick={() => handlePayFare(ride._id, 'Cash')} disabled={updatingId === ride._id}>
+                                {updatingId === ride._id ? 'Paying...' : `💵 Pay Cash (₹${ride.farePerSeat * passenger.seatsBooked})`}
+                              </button>
+                            </div>
+                          )
+                        })()}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
