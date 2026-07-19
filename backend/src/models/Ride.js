@@ -12,7 +12,9 @@ const passengerSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     seatsBooked: { type: Number, required: true, min: 1 },
-    farePaid: { type: Number, default: 0 } // store how much they paid when booking
+    farePaid: { type: Number, default: 0 }, // store how much they paid when booking
+    paymentMethod: { type: String, enum: ['Wallet', 'Cash', 'None'], default: 'None' },
+    paymentStatus: { type: String, enum: ['Unpaid', 'Pending', 'Paid'], default: 'Unpaid' }
   },
   { _id: false }
 );

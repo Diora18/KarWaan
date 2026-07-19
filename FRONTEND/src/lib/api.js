@@ -79,6 +79,24 @@ export function getMyVehicles() {
   return request('/vehicles')
 }
 
+export function updateProfile(data) {
+  return request('/users/profile', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  })
+}
+
+export function getSavedPlaces() {
+  return request('/users/saved-places')
+}
+
+export function updateSavedPlaces(data) {
+  return request('/users/saved-places', {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  })
+}
+
 export function publishRide(payload) {
   return request('/rides/publish', {
     method: 'POST',
@@ -135,6 +153,13 @@ export function payRideFare(rideId, method = 'Wallet') {
   return request('/payments/ride-fare', {
     method: 'POST',
     body: JSON.stringify({ rideId, method })
+  })
+}
+
+export function confirmCashPayment(rideId, passengerId) {
+  return request('/payments/confirm-cash', {
+    method: 'POST',
+    body: JSON.stringify({ rideId, passengerId })
   })
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 
-export default function AddressAutocomplete({ value, onChange, placeholder = 'Search address...', label }) {
+export default function AddressAutocomplete({ value, onChange, placeholder = 'Search address...', label, quickPicks = [] }) {
   const [query, setQuery] = useState(value?.address || '')
   const [suggestions, setSuggestions] = useState([])
   const [isOpen, setIsOpen] = useState(false)
@@ -102,6 +102,25 @@ export default function AddressAutocomplete({ value, onChange, placeholder = 'Se
             )
           })}
         </ul>
+      )}
+      
+      {quickPicks && quickPicks.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          {quickPicks.map((pick, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className="secondary-btn"
+              style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '1rem' }}
+              onClick={() => {
+                setQuery(pick.place.address)
+                onChange(pick.place)
+              }}
+            >
+              {pick.label}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )

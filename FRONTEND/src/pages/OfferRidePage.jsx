@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getMyVehicles, publishRide } from '../lib/api.js'
+import { getMyVehicles, publishRide, getSavedPlaces } from '../lib/api.js'
 import AddressAutocomplete from '../components/AddressAutocomplete.jsx'
 import MapView from '../components/MapView.jsx'
 
@@ -13,6 +13,7 @@ export default function OfferRidePage() {
   
   const [pickupLocation, setPickupLocation] = useState(null)
   const [destinationLocation, setDestinationLocation] = useState(null)
+  const [savedPlaces, setSavedPlaces] = useState(null)
 
   const [formData, setFormData] = useState({
     departureDate: new Date().toISOString().split('T')[0],
@@ -40,6 +41,13 @@ export default function OfferRidePage() {
         if (alive) setLoadingVehicles(false)
       })
       
+    getSavedPlaces()
+      .then(places => {
+        if (!alive) return
+        setSavedPlaces(places)
+      })
+      .catch(err => console.error("Could not load saved places", err))
+
     return () => { alive = false }
   }, [])
 
@@ -64,8 +72,14 @@ export default function OfferRidePage() {
 
       const payload = {
         vehicleId: formData.vehicleId,
-        pickupLocation: pickupLocation,
-        destinationLocation: destinationLocation,
+        pickupLocation: {
+          address: pickupLocation.address,
+          coordinates: pickupLocation.location?.coordinates || pickupLocation.coordinates
+        },
+        destinationLocation: {
+          address: destinationLocation.address,
+          coordinates: destinationLocation.location?.coordinates || destinationLocation.coordinates
+        },
         departureTime: departureDate.toISOString(),
         availableSeats: Number(formData.availableSeats),
         farePerSeat: Number(formData.farePerSeat)
@@ -103,6 +117,10 @@ export default function OfferRidePage() {
             placeholder="Search pickup address..."
             value={pickupLocation}
             onChange={setPickupLocation}
+            quickPicks={[
+              ...(savedPlaces?.home ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
+              ...(savedPlaces?.office ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
+            ]}
           />
           
           <AddressAutocomplete
@@ -110,6 +128,10 @@ export default function OfferRidePage() {
             placeholder="Search destination..."
             value={destinationLocation}
             onChange={setDestinationLocation}
+            quickPicks={[
+              ...(savedPlaces?.home ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
+              ...(savedPlaces?.office ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
+            ]}
           />
           
           <div className="grid grid-2 gap-sm">

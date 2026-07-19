@@ -14,6 +14,7 @@ import AdminRoute from './components/AdminRoute.jsx'
 import WalletPage from './pages/WalletPage.jsx'
 import ChatPage from './pages/ChatPage.jsx'
 import LiveTrackingPage from './pages/LiveTrackingPage.jsx'
+import SettingsPage from './pages/SettingsPage.jsx'
 import Navbar from './components/Navbar.jsx'
 
 const noSidebarRoutes = ['/', '/login', '/signup']
@@ -51,6 +52,7 @@ function App() {
         <Route path="/my-trips" element={<ProtectedRoute><MyTripsPage /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><RideHistoryPage /></ProtectedRoute>} />
         <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AppLayout>

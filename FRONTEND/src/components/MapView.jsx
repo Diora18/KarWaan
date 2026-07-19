@@ -55,23 +55,26 @@ function MapUpdater({ pickup, destination, driverLocation, routeCoords }) {
 export default function MapView({ pickup, destination, driverLocation, height = '350px' }) {
   const [routeCoords, setRouteCoords] = useState([])
 
+  const isValidCoord = (coord) => Array.isArray(coord) && coord.length === 2
+
+  const validPickup = isValidCoord(pickup) ? pickup : null
+  const validDestination = isValidCoord(destination) ? destination : null
+  const validDriver = isValidCoord(driverLocation) ? driverLocation : null
+
   // Fetch route from OSRM
   useEffect(() => {
-    if (!pickup || !destination) {
+    if (!validPickup || !validDestination) {
       setRouteCoords([])
       return
     }
 
     const fetchRoute = async () => {
       try {
-        // OSRM expects: {longitude},{latitude}
-        const url = `https://router.project-osrm.org/route/v1/driving/${pickup[0]},${pickup[1]};${destination[0]},${destination[1]}?overview=full&geometries=geojson`
+        const url = `https://router.project-osrm.org/route/v1/driving/${validPickup[0]},${validPickup[1]};${validDestination[0]},${validDestination[1]}?overview=full&geometries=geojson`
         const res = await fetch(url)
         const data = await res.json()
         
         if (data.code === 'Ok' && data.routes.length > 0) {
-          // OSRM returns GeoJSON coordinates as [longitude, latitude]
-          // Leaflet Polyline expects [latitude, longitude]
           const latLngs = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]])
           setRouteCoords(latLngs)
         }
@@ -81,11 +84,11 @@ export default function MapView({ pickup, destination, driverLocation, height = 
     }
 
     fetchRoute()
-  }, [pickup, destination])
+  }, [validPickup, validDestination])
 
   // Default center: Ahmedabad
   const defaultCenter = [23.0225, 72.5714]
-  const center = pickup ? [pickup[1], pickup[0]] : defaultCenter
+  const center = validPickup ? [validPickup[1], validPickup[0]] : defaultCenter
 
   return (
     <div style={{ height, borderRadius: '14px', overflow: 'hidden', border: '1px solid var(--border)' }} className="dark-map">
@@ -96,9 +99,9 @@ export default function MapView({ pickup, destination, driverLocation, height = 
         />
         
         <MapUpdater 
-          pickup={pickup} 
-          destination={destination} 
-          driverLocation={driverLocation}
+          pickup={validPickup} 
+          destination={validDestination} 
+          driverLocation={validDriver}
           routeCoords={routeCoords}
         />
 
@@ -111,12 +114,12 @@ export default function MapView({ pickup, destination, driverLocation, height = 
           />
         )}
 
-        {pickup && <Marker position={[pickup[1], pickup[0]]} icon={greenIcon} />}
-        {destination && <Marker position={[destination[1], destination[0]]} icon={redIcon} />}
+        {validPickup && <Marker position={[validPickup[1], validPickup[0]]} icon={greenIcon} />}
+        {validDestination && <Marker position={[validDestination[1], validDestination[0]]} icon={redIcon} />}
         
-        {driverLocation && (
+        {validDriver && (
           <Marker 
-            position={[driverLocation[1], driverLocation[0]]} 
+            position={[validDriver[1], validDriver[0]]} 
             icon={blueIcon}
             zIndexOffset={1000} 
           />

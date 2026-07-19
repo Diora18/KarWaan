@@ -194,11 +194,11 @@ export default function FindRidePage() {
               <strong>From:</strong> {selectedRide.pickupLocation?.address}<br/>
               <strong>To:</strong> {selectedRide.destinationLocation?.address}
             </p>
-            <div style={{ flex: 1, minHeight: 320 }}>
+            <div style={{ flex: 1 }}>
               <MapView
-                pickup={selectedRide.pickupLocation?.coordinates}
-                destination={selectedRide.destinationLocation?.coordinates}
-                height="100%"
+                pickup={selectedRide.pickupLocation?.coordinates || selectedRide.pickupLocation?.location?.coordinates}
+                destination={selectedRide.destinationLocation?.coordinates || selectedRide.destinationLocation?.location?.coordinates}
+                height={320}
               />
             </div>
           </div>
