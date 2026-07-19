@@ -118,8 +118,8 @@ export default function OfferRidePage() {
             value={pickupLocation}
             onChange={setPickupLocation}
             quickPicks={[
-              ...(savedPlaces?.home ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
-              ...(savedPlaces?.office ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
+              ...(savedPlaces?.home && Object.keys(savedPlaces.home).length > 0 ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
+              ...(savedPlaces?.office && Object.keys(savedPlaces.office).length > 0 ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
             ]}
           />
           
@@ -129,8 +129,8 @@ export default function OfferRidePage() {
             value={destinationLocation}
             onChange={setDestinationLocation}
             quickPicks={[
-              ...(savedPlaces?.home ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
-              ...(savedPlaces?.office ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
+              ...(savedPlaces?.home && Object.keys(savedPlaces.home).length > 0 ? [{ label: '🏠 Home', place: savedPlaces.home }] : []),
+              ...(savedPlaces?.office && Object.keys(savedPlaces.office).length > 0 ? [{ label: '🏢 Office', place: savedPlaces.office }] : [])
             ]}
           />
           

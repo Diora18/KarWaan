@@ -42,7 +42,7 @@ async function seed() {
       name: 'Khush Patel',
       email: 'khush@odoo.com',
       password,
-      phone: '9876543210',
+      phone: '7359917789',
       role: 'Employee',
       organizationId: organization._id,
       status: 'Active',
